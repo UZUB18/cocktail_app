@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import {
   ArrowLeft,
   BarChart3,
@@ -35,10 +35,8 @@ import './App.css'
 import { catalogCocktails, type CatalogCocktail, type CatalogIngredient } from './data/catalog'
 import {
   allCocktails,
-  defaultState,
   findCocktail,
   loadStoredState,
-  resetStoredState,
   saveStoredState,
   toggleItem,
   uniquePush,
@@ -68,6 +66,15 @@ const navItems = [
 
 type Tab = (typeof tabs)[number]
 type View = (typeof navItems)[number]['label']
+
+function initialView() {
+  const hash = window.location.hash.replace(/^#/, '').split('/')[0].replace(/-/g, ' ').toLowerCase()
+  return navItems.find((item) => item.label.toLowerCase() === hash)?.label || 'Home / Command'
+}
+
+function initialSelectedIdFromHash() {
+  return window.location.hash.replace(/^#/, '').split('/')[1]
+}
 
 const troubleFixes: Record<string, string[]> = {
   'Too sweet': [
@@ -146,8 +153,13 @@ function cocktailPhoto(cocktail: Pick<CatalogCocktail, 'id' | 'name' | 'imageUrl
 }
 
 function App() {
-  const [stored, setStored] = useState<StoredState>(() => loadStoredState())
-  const [activeView, setActiveView] = useState<View>('Recipes')
+  const [stored, setStored] = useState<StoredState>(() => {
+    const loaded = loadStoredState()
+    const selectedId = initialSelectedIdFromHash()
+    if (!selectedId || !catalogCocktails.some((cocktail) => cocktail.id === selectedId)) return loaded
+    return { ...loaded, selectedId }
+  })
+  const [activeView, setActiveView] = useState<View>(() => initialView())
   const [activeTab, setActiveTab] = useState<Tab>('Recipe')
   const [scale, setScale] = useState(1)
   const [metric, setMetric] = useState(false)
@@ -188,8 +200,12 @@ function App() {
     setStored((current) => updater(current))
   }
 
+  function navigate(view: View) {
+    setActiveView(view)
+  }
+
   function openCocktail(cocktail: CatalogCocktail) {
-    setActiveView('Recipes')
+    navigate('Recipes')
     setActiveTab('Recipe')
     updateStored((state) => ({ ...state, selectedId: cocktail.id }))
   }
@@ -250,21 +266,21 @@ function App() {
       savedIds: uniquePush(state.savedIds, custom.id),
     }))
     setCustomDraft(starterCustom)
-    setActiveView('Recipes')
+    navigate('Recipes')
   }
 
   const tabContent = getTabContent(selected, activeTab)
   const missingForSelected = missingIngredients(selected, stored.inventory)
-  const batchRows = batchIngredients(selected, servings)
 
   return (
     <main className="app-shell">
+      <div className="edge-hover-zone" aria-hidden="true" />
       <Sidebar
         activeView={activeView}
         collectionCount={stored.collectionIds.length}
         savedCount={stored.savedIds.length}
         shoppingCount={stored.shoppingList.length}
-        setActiveView={setActiveView}
+        setActiveView={navigate}
       />
 
       <section className="workspace">
@@ -273,7 +289,9 @@ function App() {
             <Sparkles size={25} />
             <div>
               <strong>Good evening, Alex.</strong>
-              <span>{cocktails.length} cocktails available locally</span>
+              <span>
+                {cocktails.length} cocktails - {stored.savedIds.length} saved - {stored.inventory.length} in inventory
+              </span>
             </div>
           </div>
           <label className="search-box">
@@ -311,15 +329,17 @@ function App() {
             onCreate={saveCustomCocktail}
             onOpen={openCocktail}
             recentSearches={stored.recentSearches}
-            resetLocalData={() => {
-              resetStoredState()
-              setStored(defaultState)
-            }}
             savedCount={stored.savedIds.length}
+            savedIds={stored.savedIds}
+            selected={selected}
             setActiveView={setActiveView}
             setCustomDraft={setCustomDraft}
             setQuery={setQuery}
+            shoppingCount={stored.shoppingList.length}
             submitSearch={submitSearch}
+            toggleSave={(id) =>
+              updateStored((state) => ({ ...state, savedIds: toggleItem(state.savedIds, id) }))
+            }
           />
         )}
 
@@ -410,7 +430,7 @@ function App() {
 
         {activeView === 'Batch Planner' && (
           <BatchPlannerView
-            batchRows={batchRows}
+            cocktails={cocktails}
             selected={selected}
             servings={servings}
             setServings={setServings}
@@ -513,12 +533,15 @@ function HomeView({
   onCreate,
   onOpen,
   recentSearches,
-  resetLocalData,
   savedCount,
+  savedIds,
+  selected,
   setActiveView,
   setCustomDraft,
   setQuery,
+  shoppingCount,
   submitSearch,
+  toggleSave,
 }: {
   cocktails: CatalogCocktail[]
   customDraft: typeof starterCustom
@@ -526,86 +549,223 @@ function HomeView({
   onCreate: () => void
   onOpen: (cocktail: CatalogCocktail) => void
   recentSearches: string[]
-  resetLocalData: () => void
   savedCount: number
+  savedIds: string[]
+  selected: CatalogCocktail
   setActiveView: (view: View) => void
   setCustomDraft: (draft: typeof starterCustom) => void
   setQuery: (query: string) => void
+  shoppingCount: number
   submitSearch: (query: string) => void
+  toggleSave: (id: string) => void
 }) {
+  const heroCocktail = byName(cocktails, 'Manhattan') || cocktails[0]
+  const continueCocktail = selected || heroCocktail
+  const featuredCocktails = ['Jungle Bird', 'Negroni', 'Margarita', 'Whiskey Smash']
+    .map((name) => byName(cocktails, name))
+    .filter(Boolean) as CatalogCocktail[]
+  const lowStock = Math.max(shoppingCount, 0)
+  const wellStocked = Math.max(inventoryCount - lowStock, 0)
+  const runningLow = Math.max(Math.min(lowStock, inventoryCount), 0)
+  const outOfStock = Math.max(lowStock - runningLow, 0)
+  const activityItems = [
+    {
+      icon: Check,
+      title: `You opened ${continueCocktail.name}`,
+      detail: recentSearches[0] ? `Recent search: ${recentSearches[0]}` : 'Ready to keep editing',
+    },
+    {
+      icon: Save,
+      title: savedCount > 0 ? `You saved ${savedCount} specs` : 'No saved specs yet',
+      detail: savedCount > 0 ? 'Favorites are stored locally' : 'Bookmark cocktails from any card',
+    },
+    {
+      icon: ShoppingBag,
+      title: lowStock > 0 ? `${lowStock} items need restocking` : 'Shopping list is clear',
+      detail: inventoryCount > 0 ? `${inventoryCount} ingredients in inventory` : 'Start by adding your bottles',
+    },
+  ]
+  const collectionTiles = [
+    { label: 'Bitter Tiki', query: 'bitter tiki', icon: Martini, count: countMatches(cocktails, 'tiki bitter') },
+    { label: 'Rye & Campari', query: 'rye campari', icon: Wine, count: countMatches(cocktails, 'rye campari') },
+    { label: 'Party Batches', query: 'punch batch', icon: FlaskConical, count: countMatches(cocktails, 'punch batch') },
+    { label: 'Zero-Proof', query: 'NA zero proof', icon: Sparkles, count: countMatches(cocktails, 'NA zero proof') },
+  ]
+  const baseOptions = ['Gin', 'Rum', 'Whiskey', 'Tequila', 'Mezcal', 'Brandy', 'Vodka', 'No spirit']
+
+  function runPresetSearch(value: string) {
+    setQuery(value)
+    submitSearch(value)
+  }
+
   return (
-    <div className="page view-page">
-      <section className="command-grid">
-        <div className="panel command-panel">
-          <span className="eyebrow">Local-first cocktail workspace</span>
-          <h1>Build, search, save, and batch from your home bar.</h1>
+    <div className="home-page">
+      <div className="home-left-column">
+        <section className="library-hero" style={{ '--hero-image': `url(${cocktailPhoto(heroCocktail)})` } as CSSProperties}>
+          <span className="eyebrow">Local-first. Private. Always yours.</span>
+          <h1>Your cocktail library, beautifully organized.</h1>
           <p>
-            The app ships with {catalogCocktails.length} cocktail specs and stores your own recipes,
-            inventory, notes, collections, and shopping list in this browser.
+            Build, search, save, and batch from your home bar. {catalogCocktails.length} cocktail specs, your recipes,
+            notes, collections, and inventory right in this browser.
           </p>
-          <div className="command-actions">
-            {['bitter tiki', 'rye campari', 'party batch', 'zero proof'].map((preset) => (
-              <button
-                key={preset}
-                onClick={() => {
-                  setQuery(preset)
-                  submitSearch(preset)
-                }}
-              >
-                {preset}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="panel storage-panel">
-          <h2>Storage Status</h2>
-          <div className="storage-stats">
-            <StatBlock label="Catalog" value={`${cocktails.length}`} />
-            <StatBlock label="Saved" value={`${savedCount}`} />
-            <StatBlock label="Inventory" value={`${inventoryCount}`} />
-          </div>
-          <button className="danger-button" onClick={resetLocalData}>
-            Reset local data
+          <button className="primary-home-action" onClick={() => setActiveView('Search')}>
+            Browse all cocktails
+            <ChevronRight size={20} />
           </button>
-        </div>
-      </section>
+        </section>
 
-      <section className="split-grid">
-        <div className="panel">
-          <h2>Recent Searches</h2>
-          <div className="chip-list">
-            {recentSearches.map((item) => (
-              <button
-                key={item}
-                onClick={() => {
-                  setQuery(item)
-                  submitSearch(item)
-                }}
-              >
-                {item}
+        <section className="featured-section">
+          <SectionTitle action="View all" onAction={() => setActiveView('Search')} title="Featured cocktails" />
+          <div className="featured-home-grid">
+            {featuredCocktails.map((cocktail) => (
+              <article className="featured-home-card" key={cocktail.id}>
+                <button onClick={() => onOpen(cocktail)}>
+                  <img alt={`${cocktail.name} cocktail`} loading="lazy" src={cocktailPhoto(cocktail)} />
+                  <span>
+                    <strong>{cocktail.name}</strong>
+                    <small>{[cocktail.family, cocktail.difficulty, cocktail.style].filter(Boolean).slice(0, 3).join(' - ')}</small>
+                  </span>
+                </button>
+                <button aria-label={`Save ${cocktail.name}`} onClick={() => toggleSave(cocktail.id)}>
+                  <Save fill={savedIds.includes(cocktail.id) ? 'currentColor' : 'none'} size={17} />
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="collections-home">
+          <SectionTitle action="View all" onAction={() => setActiveView('Collections')} title="Collections" />
+          <div className="collection-tile-grid">
+            {collectionTiles.map((tile) => (
+              <button className="collection-tile" key={tile.label} onClick={() => runPresetSearch(tile.query)}>
+                <span>
+                  <tile.icon size={28} />
+                </span>
+                <strong>{tile.label}</strong>
+                <small>{tile.count} recipes</small>
               </button>
             ))}
           </div>
-        </div>
-        <CustomCocktailForm
-          customDraft={customDraft}
-          onCreate={onCreate}
-          setCustomDraft={setCustomDraft}
-        />
-      </section>
-
-      <ListView
-        cocktails={cocktails.slice(0, 8)}
-        eyebrow="Recommended starting points"
-        onOpen={onOpen}
-        title="Open a detail page and start editing your local workspace"
-      />
-
-      <div className="footer-actions">
-        <button onClick={() => setActiveView('Inventory')}>Manage inventory</button>
-        <button onClick={() => setActiveView('Batch Planner')}>Plan a batch</button>
-        <button onClick={() => setActiveView('Collections')}>Open collection</button>
+        </section>
       </div>
+
+      <aside className="home-right-rail">
+        <section className="home-panel at-glance">
+          <SectionTitle action="Manage" onAction={() => setActiveView('Inventory')} title="At a glance" />
+          <div className="glance-grid">
+            <StatBlock label="Cocktails in catalog" value={`${cocktails.length}`} />
+            <StatBlock label="Saved favorites" value={`${savedCount}`} />
+            <StatBlock label="Ingredients in inventory" value={`${inventoryCount}`} />
+            <StatBlock label="Low stock restock soon" value={`${lowStock}`} />
+          </div>
+        </section>
+
+        <section className="home-panel continue-panel">
+          <SectionTitle action="View all" onAction={() => setActiveView('Recipes')} title="Continue where you left off" />
+          <div className="continue-card">
+            <img alt={`${continueCocktail.name} cocktail`} src={cocktailPhoto(continueCocktail)} />
+            <div>
+              <strong>{continueCocktail.name}</strong>
+              <span>{continueCocktail.source === 'custom' ? 'Local recipe' : continueCocktail.family}</span>
+              <div className="progress-track">
+                <i style={{ width: `${savedIds.includes(continueCocktail.id) ? 82 : 58}%` }} />
+              </div>
+            </div>
+            <small>{savedIds.includes(continueCocktail.id) ? '82%' : '58%'}</small>
+            <button onClick={() => onOpen(continueCocktail)}>Open</button>
+          </div>
+        </section>
+
+        <section className="home-panel quick-add-panel">
+          <h2>Quick add cocktail</h2>
+          <div className="quick-add-row">
+            <input
+              aria-label="Cocktail name"
+              onChange={(event) => setCustomDraft({ ...customDraft, name: event.target.value })}
+              placeholder="Cocktail name"
+              value={customDraft.name}
+            />
+            <select
+              aria-label="Base spirit"
+              onChange={(event) => setCustomDraft({ ...customDraft, baseSpirit: event.target.value })}
+              value={customDraft.baseSpirit}
+            >
+              <option value="">Base spirit</option>
+              {baseOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <button onClick={onCreate}>Add</button>
+          </div>
+        </section>
+
+        <div className="rail-two-column">
+          <section className="home-panel activity-panel">
+            <SectionTitle action="View all" onAction={() => setActiveView('Search')} title="Recent activity" />
+            <div className="activity-list">
+              {activityItems.map((item) => (
+                <div className="activity-item" key={item.title}>
+                  <span>
+                    <item.icon size={16} />
+                  </span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{item.detail}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="home-panel recommendations-panel">
+            <h2>
+              Smart recommendations
+              <Sparkles size={16} />
+            </h2>
+            <button onClick={() => setActiveView('Inventory')}>
+              <ShoppingBag size={18} />
+              <span>
+                Low on {lowStock} ingredients
+                <small>View restock list</small>
+              </span>
+              <ChevronRight size={18} />
+            </button>
+            <button onClick={() => setActiveView('Batch Planner')}>
+              <FlaskConical size={18} />
+              <span>
+                Try a batch recipe
+                <small>Make 8+ drinks at once</small>
+              </span>
+              <ChevronRight size={18} />
+            </button>
+            <button onClick={() => runPresetSearch(continueCocktail.family)}>
+              <Shuffle size={18} />
+              <span>
+                Explore similar
+                <small>Based on your favorites</small>
+              </span>
+              <ChevronRight size={18} />
+            </button>
+          </section>
+        </div>
+
+        <section className="home-panel inventory-snapshot">
+          <SectionTitle action="View inventory" onAction={() => setActiveView('Inventory')} title="Inventory snapshot" />
+          <div className="inventory-bar" aria-label="Inventory status">
+            <span style={{ flex: Math.max(wellStocked, 1) }} />
+            <span style={{ flex: Math.max(runningLow, 1) }} />
+            <span style={{ flex: Math.max(outOfStock, lowStock > 0 ? 1 : 0.35) }} />
+          </div>
+          <div className="inventory-legend">
+            <span>Well stocked <b>{wellStocked}</b></span>
+            <span>Running low <b>{runningLow}</b></span>
+            <span>Out of stock <b>{outOfStock}</b></span>
+          </div>
+        </section>
+      </aside>
     </div>
   )
 }
@@ -937,13 +1097,28 @@ function RecipeDetail({
             </div>
             {activeTab === 'Variations' && (
               <div className="variation-grid">
-                {selected.variations.map((variation) => (
-                  <article key={variation}>
-                    <strong>{variation}</strong>
-                    <span>Variation</span>
-                    <p>Use search to open or build this riff as a local cocktail.</p>
-                  </article>
-                ))}
+                {selected.variations.map((variation) => {
+                  const linkedCocktail = findVariationCocktail(variation)
+                  return (
+                    <article className={linkedCocktail ? 'linked' : ''} key={variation}>
+                      <strong>{variation}</strong>
+                      <span>{linkedCocktail ? 'Open recipe' : 'Variation'}</span>
+                      {linkedCocktail ? (
+                        <button
+                          onClick={() => {
+                            updateStored((state) => ({ ...state, selectedId: linkedCocktail.id }))
+                            setActiveTab('Recipe')
+                          }}
+                        >
+                          Go to {linkedCocktail.name}
+                          <ChevronRight size={16} />
+                        </button>
+                      ) : (
+                        <p>Use search to open or build this riff as a local cocktail.</p>
+                      )}
+                    </article>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -1094,35 +1269,288 @@ function InventoryView({
 }
 
 function BatchPlannerView({
-  batchRows,
+  cocktails,
   selected,
   servings,
   setServings,
   updateStored,
 }: {
-  batchRows: string[]
+  cocktails: CatalogCocktail[]
   selected: CatalogCocktail
   servings: number
   setServings: (servings: number) => void
   updateStored: (updater: (state: StoredState) => StoredState) => void
 }) {
-  const water = Math.round(estimatedWaterMl(selected, servings))
+  const [unitSystem, setUnitSystem] = useState<'metric' | 'us'>('metric')
+  const [dilutionPercent, setDilutionPercent] = useState(defaultDilutionPercent(selected))
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({
+    chill: true,
+    verify: true,
+    mix: true,
+    label: false,
+    taste: false,
+  })
+  const plan = useMemo(
+    () => buildBatchPlan(selected, servings, dilutionPercent),
+    [selected, servings, dilutionPercent],
+  )
+  const isMetric = unitSystem === 'metric'
+  const hasEgg = hasEggTexture(selected)
+  const shelfLife = batchShelfLife(selected)
+  const caution = batchCaution(selected)
+
+  function chooseCocktail(id: string) {
+    updateStored((state) => ({ ...state, selectedId: id }))
+    setDilutionPercent(defaultDilutionPercent(cocktails.find((cocktail) => cocktail.id === id) || selected))
+  }
+
+  function toggleChecklist(key: string) {
+    setChecklist((current) => ({ ...current, [key]: !current[key] }))
+  }
+
   return (
-    <div className="page view-page">
-      <ViewHeader eyebrow="Batch Planner" title={`Scale ${selected.name} for a real service plan`} />
-      <section className="split-grid">
-        <div className="panel batch-control">
-          <h2>Servings</h2>
-          <div className="serving-stepper">
-            <button onClick={() => setServings(Math.max(1, servings - 1))}>
-              <Minus size={16} />
-            </button>
-            <strong>{servings}</strong>
-            <button onClick={() => setServings(Math.min(80, servings + 1))}>
-              <Plus size={16} />
-            </button>
+    <div className="page batch-page">
+      <div className="batch-topline">
+        <div>
+          <span className="eyebrow">Batch Planner / {selected.name}</span>
+          <h1>Scale {selected.name} for a real service plan</h1>
+          <p>Pick any cocktail, set the yield and dilution, then use the batch sheet for prep.</p>
+        </div>
+        <div className="batch-actions">
+          <button onClick={() => updateStored((state) => ({ ...state, savedIds: uniquePush(state.savedIds, selected.id) }))}>
+            Save as draft
+          </button>
+          <button
+            className="save-batch"
+            onClick={() =>
+              updateStored((state) => ({
+                ...state,
+                shoppingList: mergeList(
+                  state.shoppingList,
+                  selected.ingredients.map((ingredient) => ingredient.name),
+                ),
+                collectionIds: uniquePush(state.collectionIds, selected.id),
+              }))
+            }
+          >
+            Save batch
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      <section className="batch-selector panel">
+        <img alt={`${selected.name} cocktail`} src={cocktailPhoto(selected)} />
+        <label>
+          Cocktail
+          <select value={selected.id} onChange={(event) => chooseCocktail(event.target.value)}>
+            {cocktails.map((cocktail) => (
+              <option key={cocktail.id} value={cocktail.id}>
+                {cocktail.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div>
+          <span>Family</span>
+          <strong>{selected.family}</strong>
+        </div>
+        <div>
+          <span>Base</span>
+          <strong>{titleize(selected.baseSpirit)}</strong>
+        </div>
+      </section>
+
+      <section className="batch-layout">
+        <div className="panel batch-calculator">
+          <div className="batch-panel-title">
+            <span>1</span>
+            <h2>Batch calculator</h2>
           </div>
-          <p>Add about {water} ml water if this will be served directly from the bottle.</p>
+          <div className="batch-controls-grid">
+            <div>
+              <span>Target servings</span>
+              <div className="serving-stepper">
+                <button onClick={() => setServings(Math.max(1, servings - 1))}>
+                  <Minus size={16} />
+                </button>
+                <strong>{servings}</strong>
+                <button onClick={() => setServings(Math.min(300, servings + 1))}>
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+            <div>
+              <span>Per serve</span>
+              <strong>{formatBatchVolume(plan.perServeMl, isMetric)}</strong>
+            </div>
+            <div>
+              <span>Total batch volume</span>
+              <strong>{formatBatchVolume(plan.totalMl, isMetric)}</strong>
+            </div>
+            <div>
+              <span>Unit system</span>
+              <div className="segmented-control">
+                <button className={isMetric ? 'active' : ''} onClick={() => setUnitSystem('metric')}>
+                  Metric (ml)
+                </button>
+                <button className={!isMetric ? 'active' : ''} onClick={() => setUnitSystem('us')}>
+                  US (fl oz)
+                </button>
+              </div>
+            </div>
+            <div>
+              <span>Dilution</span>
+              <div className="segmented-control">
+                {[0, 0.15, 0.25, 0.3].map((amount) => (
+                  <button
+                    className={dilutionPercent === amount ? 'active' : ''}
+                    key={amount}
+                    onClick={() => setDilutionPercent(amount)}
+                  >
+                    {amount === 0 ? 'Straight (0%)' : `${Math.round(amount * 100)}%`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span>Bottles needed</span>
+              <strong>{plan.bottlesNeeded} bottles (750 ml)</strong>
+            </div>
+            <div>
+              <span>Batch strength (est.)</span>
+              <strong>{plan.strength}% ABV</strong>
+            </div>
+          </div>
+
+          <div className="batch-table">
+            <div className="batch-row batch-head">
+              <span>Ingredients</span>
+              <span>Per serve</span>
+              <span>% of batch</span>
+              <span>Total</span>
+            </div>
+            {plan.rows.map((row) => (
+              <div className="batch-row" key={row.name}>
+                <span>
+                  <BottleWine size={17} />
+                  {row.name}
+                </span>
+                <span>{formatBatchRowVolume(row, 'perServeMl', isMetric)}</span>
+                <span>{row.percent}%</span>
+                <span>{formatBatchRowVolume(row, 'totalMl', isMetric)}</span>
+              </div>
+            ))}
+            <div className="batch-row batch-water-row">
+              <span>
+                <Sparkles size={17} />
+                Measured water from dilution
+              </span>
+              <span>{formatBatchVolume(plan.waterPerServeMl, isMetric)}</span>
+              <span>{plan.waterPercent}%</span>
+              <span>{formatBatchVolume(plan.waterMl, isMetric)}</span>
+            </div>
+            <div className="batch-row batch-total-row">
+              <span>Total</span>
+              <span>{formatBatchVolume(plan.perServeMl, isMetric)}</span>
+              <span>100%</span>
+              <span>{formatBatchVolume(plan.totalMl, isMetric)}</span>
+            </div>
+          </div>
+          <p className="batch-footnote">
+            Dilution is calculated from the drink volume before service ice. Shake-only texture, bubbles, and fresh garnish
+            should still be handled at service.
+          </p>
+        </div>
+
+        <div className="panel service-workspace">
+          <div className="batch-panel-title">
+            <span>2</span>
+            <h2>Service workspace</h2>
+          </div>
+          <div className="service-grid">
+            <div className="service-card batch-sheet-card">
+              <h3>Batch sheet</h3>
+              {plan.rows.map((row) => (
+                <div key={row.name}>
+                  <span>{row.name}</span>
+                  <strong>{formatBatchRowVolume(row, 'totalMl', isMetric)}</strong>
+                </div>
+              ))}
+              <div>
+                <span>Measured water</span>
+                <strong>{formatBatchVolume(plan.waterMl, isMetric)}</strong>
+              </div>
+              <div className="batch-sheet-total">
+                <span>Total batch</span>
+                <strong>{formatBatchVolume(plan.totalMl, isMetric)}</strong>
+              </div>
+            </div>
+
+            <div className="service-card">
+              <h3>Storage & shelf life</h3>
+              <p>{shelfLife}</p>
+              <p>Keep cold, label the bottle, and avoid temperature swings.</p>
+            </div>
+
+            <div className="service-card checklist-card">
+              <h3>Prep checklist</h3>
+              {[
+                ['chill', 'Chill bottle in freezer or fridge'],
+                ['verify', hasEgg ? 'Keep egg white separate and measure it to order' : 'Verify citrus, brine, or syrup intensity'],
+                ['mix', 'Dilute and mix thoroughly'],
+                ['label', 'Label with name, yield, dilution, and date'],
+                ['taste', hasEgg ? 'Dry shake or foam each serve at pickup' : 'Taste after dilution'],
+              ].map(([key, label]) => (
+                <label key={key}>
+                  <input checked={checklist[key]} onChange={() => toggleChecklist(key)} type="checkbox" />
+                  {label}
+                </label>
+              ))}
+            </div>
+
+            <div className="service-card caution-card">
+              <h3>Batch caution</h3>
+              <p>{caution}</p>
+              <strong>Taste after dilution and before service. Adjust if needed.</strong>
+            </div>
+
+            <div className="service-card notes-card">
+              <h3>Service notes</h3>
+              <p>{selected.batchingNotes || 'Batch stable ingredients; keep citrus, bubbles, and texture to service.'}</p>
+              {hasEgg && (
+                <p>
+                  Egg white should not live in the storage bottle. Batch the liquid base, then add egg white or
+                  aquafaba per drink and dry shake during service.
+                </p>
+              )}
+              <button
+                onClick={() =>
+                  updateStored((state) => ({
+                    ...state,
+                    notes: {
+                      ...state.notes,
+                      [selected.id]: `${state.notes[selected.id] || ''}\nBatch: ${servings} serves, ${formatBatchVolume(plan.totalMl, true)}, ${Math.round(dilutionPercent * 100)}% dilution.`.trim(),
+                    },
+                  }))
+                }
+              >
+                Add note
+              </button>
+            </div>
+          </div>
+          <p className="batch-footnote">
+            Label example: {selected.name} - {servings} serves - {formatBatchVolume(plan.totalMl, true)} -{' '}
+            {Math.round(dilutionPercent * 100)}% dilution.
+          </p>
+        </div>
+      </section>
+
+      <section className="batch-impact panel">
+        <div>
+          <ShoppingBag size={28} />
+          <span>Shopping list impact</span>
+          <strong>{selected.ingredients.length} items</strong>
           <button
             onClick={() =>
               updateStored((state) => ({
@@ -1134,24 +1562,28 @@ function BatchPlannerView({
               }))
             }
           >
-            Add batch ingredients to shopping
+            Add ingredients
           </button>
         </div>
-        <div className="panel">
-          <h2>Batch Sheet</h2>
-          <div className="batch-list">
-            {batchRows.map((row) => (
-              <div key={row}>{row}</div>
-            ))}
-            <div>Measured water: {water} ml</div>
-          </div>
+        <div>
+          <Clock3 size={28} />
+          <span>Service timing</span>
+          <strong>{estimatedPrepTime(servings)} min</strong>
+          <button
+            onClick={() =>
+              updateStored((state) => ({
+                ...state,
+                notes: {
+                  ...state.notes,
+                  [selected.id]: `${state.notes[selected.id] || ''}\nPrep timing: chill, batch, dilute, label, and taste before guests arrive.`.trim(),
+                },
+              }))
+            }
+          >
+            Save timeline
+          </button>
         </div>
       </section>
-      <div className="panel prep-notes">
-        <h2>Service Notes</h2>
-        <p>{selected.batchingNotes || 'Batch stable ingredients; keep citrus, bubbles, and texture to service.'}</p>
-        <p>Keep the bottle cold, label it, and taste after dilution before guests arrive.</p>
-      </div>
     </div>
   )
 }
@@ -1246,47 +1678,21 @@ function TroubleshootView({
   )
 }
 
-function CustomCocktailForm({
-  customDraft,
-  onCreate,
-  setCustomDraft,
+function SectionTitle({
+  action,
+  onAction,
+  title,
 }: {
-  customDraft: typeof starterCustom
-  onCreate: () => void
-  setCustomDraft: (draft: typeof starterCustom) => void
+  action: string
+  onAction: () => void
+  title: string
 }) {
   return (
-    <div className="panel custom-form">
-      <h2>Add Local Cocktail</h2>
-      <input
-        onChange={(event) => setCustomDraft({ ...customDraft, name: event.target.value })}
-        placeholder="Name"
-        value={customDraft.name}
-      />
-      <div className="two-inputs">
-        <input
-          onChange={(event) => setCustomDraft({ ...customDraft, family: event.target.value })}
-          placeholder="Family"
-          value={customDraft.family}
-        />
-        <input
-          onChange={(event) => setCustomDraft({ ...customDraft, baseSpirit: event.target.value })}
-          placeholder="Base spirit"
-          value={customDraft.baseSpirit}
-        />
-      </div>
-      <textarea
-        onChange={(event) => setCustomDraft({ ...customDraft, ingredients: event.target.value })}
-        placeholder={'Ingredients, one per line\n2 oz rye\n0.75 oz lemon juice'}
-        value={customDraft.ingredients}
-      />
-      <textarea
-        onChange={(event) => setCustomDraft({ ...customDraft, method: event.target.value })}
-        placeholder="Method"
-        value={customDraft.method}
-      />
-      <button onClick={onCreate}>
-        <Plus size={16} /> Save local cocktail
+    <div className="home-section-title">
+      <h2>{title}</h2>
+      <button onClick={onAction}>
+        {action}
+        <ChevronRight size={17} />
       </button>
     </div>
   )
@@ -1449,6 +1855,29 @@ function filterCocktails(cocktails: CatalogCocktail[], query: string) {
   return cocktails.filter((cocktail) => searchableText(cocktail).includes(clean))
 }
 
+function byName(cocktails: CatalogCocktail[], name: string) {
+  return cocktails.find((cocktail) => cocktail.name.toLowerCase() === name.toLowerCase())
+}
+
+function findVariationCocktail(variation: string) {
+  const clean = normalizeCocktailName(variation)
+  return catalogCocktails.find((cocktail) => {
+    const names = [cocktail.name, ...cocktail.aliases]
+    return names.some((name) => normalizeCocktailName(name) === clean)
+  })
+}
+
+function normalizeCocktailName(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\b(the|cocktail|drink|riff|variation)\b/g, '')
+    .replace(/[^a-z0-9]+/g, '')
+}
+
+function countMatches(cocktails: CatalogCocktail[], query: string) {
+  return filterCocktails(cocktails, query).length
+}
+
 function searchableText(cocktail: CatalogCocktail) {
   return [
     cocktail.name,
@@ -1522,7 +1951,16 @@ function getTabContent(cocktail: CatalogCocktail, activeTab: Tab) {
   if (activeTab === 'Home-bar notes') return cocktail.homeBarNotes
   if (activeTab === 'Substitutions') return cocktail.substitutions
   if (activeTab === 'Variations') return cocktail.variations
-  if (activeTab === 'Batching') return [cocktail.batchingNotes]
+  if (activeTab === 'Batching') {
+    return [
+      cocktail.batchingNotes,
+      ...(hasEggTexture(cocktail)
+        ? [
+            'Egg white or whole egg should not be stored in the batch bottle. Batch the liquid base only, keep egg/aquafaba cold and separate, then dry shake or foam each serve to order.',
+          ]
+        : []),
+    ]
+  }
   return []
 }
 
@@ -1565,27 +2003,132 @@ function estimateDilution(cocktail: CatalogCocktail) {
   return '25%'
 }
 
-function estimatedWaterMl(cocktail: CatalogCocktail, servings: number) {
-  const oz = cocktail.ingredients.reduce((sum, ingredient) => {
-    if (typeof ingredient.amount === 'number' && ingredient.unit.toLowerCase() === 'oz') {
-      return sum + ingredient.amount
-    }
-    return sum
-  }, 0)
-  const dilution = estimateDilution(cocktail) === '20-25%' ? 0.22 : 0.25
-  return oz * 30 * servings * dilution
+function defaultDilutionPercent(cocktail: CatalogCocktail) {
+  const text = `${cocktail.family} ${cocktail.method} ${cocktail.style}`.toLowerCase()
+  if (text.includes('highball') || text.includes('spritz') || text.includes('built')) return 0
+  if (text.includes('martini') || text.includes('manhattan') || text.includes('stir')) return 0.15
+  if (text.includes('tiki') || text.includes('shake') || text.includes('sour')) return 0.25
+  return 0.2
 }
 
-function batchIngredients(cocktail: CatalogCocktail, servings: number) {
-  return cocktail.ingredients.map((ingredient) => {
-    if (typeof ingredient.amount === 'number' && ingredient.unit.toLowerCase() === 'oz') {
-      return `${Math.round(ingredient.amount * servings * 30)} ml ${titleize(ingredient.name)}`
+function ingredientMl(ingredient: CatalogIngredient) {
+  if (typeof ingredient.amount !== 'number') return 0
+  const unit = ingredient.unit.toLowerCase()
+  if (unit === 'oz') return ingredient.amount * 29.5735
+  if (unit === 'ml') return ingredient.amount
+  if (unit === 'tsp') return ingredient.amount * 4.92892
+  if (unit === 'tbsp') return ingredient.amount * 14.7868
+  if (unit === 'dash' || unit === 'dashes') return ingredient.amount * 0.9
+  return 0
+}
+
+function isEggIngredient(ingredient: CatalogIngredient) {
+  const name = ingredient.name.toLowerCase()
+  const unit = ingredient.unit.toLowerCase()
+  return name.includes('egg white') || name.includes('whole egg') || unit === 'egg' || unit === 'eggs'
+}
+
+function hasEggTexture(cocktail: CatalogCocktail) {
+  return cocktail.ingredients.some(isEggIngredient)
+}
+
+function ingredientAbv(ingredient: CatalogIngredient) {
+  const name = ingredient.name.toLowerCase()
+  if (/juice|syrup|brine|water|cream|egg|soda|cola|tonic|ginger|coconut|coffee|tea/.test(name)) return 0
+  if (/vermouth|sherry|port|wine|aperol|campari|amaro|liqueur|falernum|chartreuse|benedictine|maraschino|curaçao|curacao/.test(name)) {
+    return 0.18
+  }
+  if (/bitters/.test(name)) return 0.45
+  if (/gin|vodka|rum|whiskey|whisky|rye|bourbon|brandy|cognac|tequila|mezcal|pisco|cachaca|cachaça|scotch|applejack/.test(name)) {
+    return 0.4
+  }
+  return 0
+}
+
+function buildBatchPlan(cocktail: CatalogCocktail, servings: number, dilutionPercent: number) {
+  const rows = cocktail.ingredients.map((ingredient) => {
+    const serviceOnly = isEggIngredient(ingredient)
+    const perServeMl = serviceOnly ? 0 : ingredientMl(ingredient)
+    const totalMl = perServeMl * servings
+    return {
+      name: titleize(ingredient.name),
+      perServeMl,
+      totalMl,
+      abv: ingredientAbv(ingredient),
+      serviceOnly,
+      percent: 0,
     }
-    if (typeof ingredient.amount === 'number') {
-      return `${ingredient.amount * servings} ${ingredient.unit} ${titleize(ingredient.name)}`.trim()
-    }
-    return `${ingredient.amount} ${ingredient.unit} ${titleize(ingredient.name)}`.trim()
   })
+  const ingredientTotalMl = rows.reduce((sum, row) => sum + row.totalMl, 0)
+  const preDilutionPerServeMl = rows.reduce((sum, row) => sum + row.perServeMl, 0)
+  const waterMl = ingredientTotalMl * dilutionPercent
+  const waterPerServeMl = preDilutionPerServeMl * dilutionPercent
+  const totalMl = ingredientTotalMl + waterMl
+  const spiritMl = rows.filter((row) => row.abv >= 0.18).reduce((sum, row) => sum + row.totalMl, 0)
+  const pureAlcoholMl = rows.reduce((sum, row) => sum + row.totalMl * row.abv, 0)
+  const strength = totalMl > 0 ? Math.round((pureAlcoholMl / totalMl) * 1000) / 10 : 0
+  const waterPercent = totalMl > 0 ? Math.round((waterMl / totalMl) * 1000) / 10 : 0
+  return {
+    rows: rows.map((row) => ({
+      ...row,
+      percent: totalMl > 0 ? Math.round((row.totalMl / totalMl) * 1000) / 10 : 0,
+    })),
+    ingredientTotalMl,
+    waterMl,
+    waterPerServeMl,
+    waterPercent,
+    totalMl,
+    perServeMl: totalMl / servings,
+    bottlesNeeded: Math.max(1, Math.ceil(spiritMl / 750)),
+    strength,
+  }
+}
+
+function formatBatchVolume(ml: number, metric: boolean) {
+  if (metric) {
+    if (ml >= 1000) return `${(ml / 1000).toFixed(2)} L`
+    return `${Math.round(ml)} ml`
+  }
+  return `${(ml / 29.5735).toFixed(1)} fl oz`
+}
+
+function formatBatchRowVolume(
+  row: { perServeMl: number; totalMl: number; serviceOnly?: boolean },
+  key: 'perServeMl' | 'totalMl',
+  metric: boolean,
+) {
+  if (row.serviceOnly) return 'to order'
+  return formatBatchVolume(row[key], metric)
+}
+
+function batchShelfLife(cocktail: CatalogCocktail) {
+  const text = searchableText(cocktail)
+  if (hasEggTexture(cocktail)) {
+    return 'Do not store egg white or whole egg in the batch. Keep the liquid base chilled and add egg or aquafaba fresh during service.'
+  }
+  if (/soda|sparkling|champagne|prosecco|beer|tonic/.test(text)) {
+    return 'Do not pre-batch bubbles. Batch the still ingredients and top with carbonation at service.'
+  }
+  if (/lime|lemon|orange juice|grapefruit|pineapple/.test(text)) {
+    return 'Fresh juice batches are best the same day. Keep refrigerated and taste before service.'
+  }
+  if (/vermouth|sherry|port|wine/.test(text)) {
+    return 'Keep refrigerated. Best quality within 1-2 weeks because fortified wine oxidizes.'
+  }
+  return 'Store cold. Spirit-forward batches keep well for several weeks when sealed and chilled.'
+}
+
+function batchCaution(cocktail: CatalogCocktail) {
+  const text = searchableText(cocktail)
+  if (hasEggTexture(cocktail)) return 'Egg foam collapses, separates, and raises food-safety concerns if stored in a batch bottle.'
+  if (/brine|olive/.test(text)) return 'Brine intensity changes with temperature and dilution.'
+  if (/lime|lemon|juice|pineapple|grapefruit/.test(text)) return 'Fresh citrus can sharpen or fade after batching.'
+  if (/soda|sparkling|champagne|prosecco|beer|tonic/.test(text)) return 'Carbonation should be added only when serving.'
+  return 'Cold temperature and dilution can hide sweetness, bitterness, and alcohol heat.'
+}
+
+function estimatedPrepTime(servings: number) {
+  return Math.max(10, Math.ceil(servings / 12) * 5)
 }
 
 export default App
