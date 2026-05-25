@@ -1,0 +1,1290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cocktail Colleague Upgrade Showcase</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #070807;
+        --ink: #f4efe7;
+        --muted: #b9ad9c;
+        --quiet: #81786b;
+        --panel: rgba(21, 24, 22, 0.88);
+        --panel-strong: rgba(28, 32, 30, 0.96);
+        --line: rgba(244, 239, 231, 0.14);
+        --line-strong: rgba(244, 239, 231, 0.24);
+        --amber: #d99743;
+        --rose: #d76f72;
+        --teal: #65b6a8;
+        --green: #96b85d;
+        --violet: #a69be8;
+        --blue: #73a9d8;
+        --shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        min-width: 320px;
+        margin: 0;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          var(--bg);
+        background-size: 76px 76px;
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.5;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: grid;
+        grid-template-columns: minmax(190px, 1fr) auto;
+        align-items: center;
+        gap: 20px;
+        min-height: 70px;
+        padding: 0 34px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(7, 8, 7, 0.78);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        color: var(--ink);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        display: inline-grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid rgba(217, 151, 67, 0.62);
+        border-radius: 50%;
+        color: var(--amber);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .nav a {
+        min-height: 36px;
+        padding: 8px 12px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .nav a:hover {
+        border-color: var(--line);
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .hero {
+        position: relative;
+        display: grid;
+        align-items: end;
+        min-height: calc(100vh - 70px);
+        padding: 74px 34px 38px;
+        overflow: hidden;
+        background:
+          linear-gradient(90deg, rgba(7, 8, 7, 0.98) 0%, rgba(7, 8, 7, 0.84) 48%, rgba(7, 8, 7, 0.34) 100%),
+          linear-gradient(180deg, rgba(7, 8, 7, 0.16) 0%, rgba(7, 8, 7, 0.92) 100%),
+          url("public/jungle-bird.png") center right / cover no-repeat;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0;
+        height: 120px;
+        background: linear-gradient(180deg, transparent, var(--bg));
+        pointer-events: none;
+      }
+
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 28px;
+        width: min(1120px, 100%);
+      }
+
+      .eyebrow {
+        color: var(--amber);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 920px;
+        color: #fff7ea;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(48px, 7vw, 96px);
+        font-weight: 400;
+        line-height: 0.98;
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 18px;
+        max-width: 760px;
+      }
+
+      .hero-copy p {
+        max-width: 680px;
+        color: #d9cdbd;
+        font-size: 18px;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .hero-actions a,
+      .filter-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 15px;
+        border: 1px solid var(--line-strong);
+        border-radius: 7px;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.06);
+        cursor: pointer;
+      }
+
+      .hero-actions a:first-child {
+        border-color: rgba(217, 151, 67, 0.7);
+        color: #160f08;
+        background: linear-gradient(180deg, #f1c17c, #d99743);
+        font-weight: 800;
+      }
+
+      .metric-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        width: min(920px, 100%);
+      }
+
+      .metric {
+        min-height: 96px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(9, 11, 10, 0.7);
+      }
+
+      .metric strong {
+        display: block;
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 34px;
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      main {
+        display: grid;
+      }
+
+      .band {
+        padding: 70px 34px;
+      }
+
+      .band.alt {
+        background: rgba(255, 255, 255, 0.025);
+        border-block: 1px solid var(--line);
+      }
+
+      .inner {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 0.85fr) minmax(280px, 0.45fr);
+        align-items: end;
+        gap: 34px;
+        margin-bottom: 28px;
+      }
+
+      .section-head h2 {
+        margin-top: 8px;
+        color: #f1e6d5;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(34px, 4vw, 56px);
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .section-head p {
+        color: var(--muted);
+      }
+
+      .surface-grid,
+      .upgrade-grid,
+      .mock-grid,
+      .roadmap-grid,
+      .implementation-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .surface-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .surface-item,
+      .upgrade-card,
+      .mock-panel,
+      .roadmap-column,
+      .implementation-item {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .surface-item {
+        min-height: 190px;
+        padding: 20px;
+      }
+
+      .surface-item span,
+      .upgrade-card span,
+      .roadmap-column span,
+      .implementation-item span {
+        color: var(--quiet);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .surface-item h3,
+      .upgrade-card h3,
+      .mock-panel h3,
+      .roadmap-column h3,
+      .implementation-item h3 {
+        margin-top: 10px;
+        color: #f4eadb;
+        font-size: 20px;
+      }
+
+      .surface-item p,
+      .upgrade-card p,
+      .mock-panel p,
+      .roadmap-column p,
+      .implementation-item p {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .filter-button {
+        min-height: 36px;
+        color: var(--muted);
+      }
+
+      .filter-button.active {
+        border-color: rgba(101, 182, 168, 0.64);
+        color: #eafff9;
+        background: rgba(101, 182, 168, 0.12);
+      }
+
+      .upgrade-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .upgrade-card {
+        display: grid;
+        align-content: start;
+        gap: 14px;
+        min-height: 310px;
+        padding: 22px;
+      }
+
+      .upgrade-card[data-hidden="true"] {
+        display: none;
+      }
+
+      .card-topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .priority {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .priority.now {
+        border-color: rgba(101, 182, 168, 0.58);
+        color: #bdf5eb;
+      }
+
+      .priority.next {
+        border-color: rgba(217, 151, 67, 0.58);
+        color: #ffd99f;
+      }
+
+      .priority.later {
+        border-color: rgba(166, 155, 232, 0.58);
+        color: #d8d2ff;
+      }
+
+      .upgrade-card ul,
+      .roadmap-column ul,
+      .implementation-item ul {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .upgrade-card li,
+      .roadmap-column li,
+      .implementation-item li {
+        position: relative;
+        padding-left: 18px;
+        color: #d3c8b9;
+        font-size: 14px;
+      }
+
+      .upgrade-card li::before,
+      .roadmap-column li::before,
+      .implementation-item li::before {
+        content: "";
+        position: absolute;
+        top: 0.7em;
+        left: 0;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--teal);
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: auto;
+      }
+
+      .tags b {
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .mock-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .mock-panel {
+        min-height: 430px;
+        overflow: hidden;
+        background: var(--panel-strong);
+      }
+
+      .mock-visual {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        min-height: 250px;
+        padding: 18px;
+        border-bottom: 1px solid var(--line);
+        background:
+          linear-gradient(135deg, rgba(101, 182, 168, 0.14), transparent 46%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
+      }
+
+      .mock-panel:nth-child(2) .mock-visual {
+        background:
+          linear-gradient(135deg, rgba(217, 151, 67, 0.14), transparent 48%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
+      }
+
+      .mock-panel:nth-child(3) .mock-visual {
+        background:
+          linear-gradient(135deg, rgba(215, 111, 114, 0.16), transparent 50%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
+      }
+
+      .screen-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 28px;
+      }
+
+      .screen-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--rose);
+      }
+
+      .screen-dot:nth-child(2) {
+        background: var(--amber);
+      }
+
+      .screen-dot:nth-child(3) {
+        background: var(--teal);
+      }
+
+      .mock-row,
+      .mock-chart,
+      .mock-mini-grid,
+      .mock-timeline {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(7, 8, 7, 0.42);
+      }
+
+      .mock-row {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) 72px;
+        align-items: center;
+        gap: 10px;
+        min-height: 54px;
+        padding: 9px;
+      }
+
+      .mock-thumb {
+        width: 38px;
+        height: 38px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, var(--amber), var(--rose));
+      }
+
+      .mock-lines {
+        display: grid;
+        gap: 7px;
+      }
+
+      .mock-lines i {
+        display: block;
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+      }
+
+      .mock-lines i:last-child {
+        width: 62%;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .mock-pill {
+        display: inline-grid;
+        place-items: center;
+        min-height: 28px;
+        border-radius: 999px;
+        color: #06100e;
+        background: var(--teal);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .mock-chart {
+        display: flex;
+        align-items: end;
+        gap: 8px;
+        height: 136px;
+        padding: 16px;
+      }
+
+      .mock-chart i {
+        flex: 1;
+        min-width: 12px;
+        border-radius: 7px 7px 0 0;
+        background: linear-gradient(180deg, var(--blue), var(--teal));
+      }
+
+      .mock-mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .mock-mini-grid i {
+        min-height: 48px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .mock-timeline {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .mock-timeline i {
+        height: 11px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--rose), var(--amber));
+      }
+
+      .mock-copy {
+        padding: 20px;
+      }
+
+      .roadmap-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .roadmap-column {
+        padding: 22px;
+      }
+
+      .roadmap-column h3 {
+        margin-bottom: 16px;
+      }
+
+      .implementation-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .implementation-item {
+        padding: 22px;
+      }
+
+      .file-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        margin-top: 14px;
+        padding: 0 9px;
+        border: 1px solid rgba(115, 169, 216, 0.38);
+        border-radius: 999px;
+        color: #bddfff;
+        background: rgba(115, 169, 216, 0.08);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+      }
+
+      .closing {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(280px, 0.45fr);
+        gap: 28px;
+        align-items: center;
+        padding: 34px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(90deg, rgba(101, 182, 168, 0.12), transparent),
+          var(--panel-strong);
+      }
+
+      .closing h2 {
+        color: #f1e6d5;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(30px, 4vw, 48px);
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .closing p {
+        margin-top: 12px;
+        color: var(--muted);
+      }
+
+      .score {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .score div {
+        min-height: 86px;
+        padding: 15px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(0, 0, 0, 0.18);
+      }
+
+      .score strong {
+        display: block;
+        color: var(--teal);
+        font-size: 24px;
+      }
+
+      .score span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @media (max-width: 1060px) {
+        .section-head,
+        .closing {
+          grid-template-columns: 1fr;
+        }
+
+        .surface-grid,
+        .upgrade-grid,
+        .mock-grid,
+        .roadmap-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .metric-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 720px) {
+        .topbar {
+          position: static;
+          grid-template-columns: 1fr;
+          padding: 18px;
+        }
+
+        .nav {
+          justify-content: flex-start;
+          overflow-x: auto;
+        }
+
+        .hero,
+        .band {
+          padding-inline: 18px;
+        }
+
+        .hero {
+          min-height: auto;
+          padding-top: 56px;
+        }
+
+        .surface-grid,
+        .upgrade-grid,
+        .mock-grid,
+        .roadmap-grid,
+        .implementation-grid,
+        .metric-strip,
+        .score {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 44px;
+        }
+
+        .hero-copy p {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Cocktail Colleague upgrade showcase">
+        <span class="brand-mark">CC</span>
+        <span>Cocktail Colleague</span>
+      </a>
+      <nav class="nav" aria-label="Page sections">
+        <a href="#surface">Current App</a>
+        <a href="#upgrades">Upgrades</a>
+        <a href="#mockups">Mockups</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#implementation">Build Map</a>
+      </nav>
+    </header>
+
+    <section class="hero" id="top">
+      <div class="hero-content">
+        <div class="hero-copy">
+          <span class="eyebrow">Upgrade showcase after app review</span>
+          <h1>Possible next versions for Cocktail Colleague.</h1>
+          <p>
+            The current app is already a polished local-first cocktail library. This page translates that foundation into a
+            practical upgrade roadmap: better persistence, smarter inventory, richer recipe work, service planning, and
+            mobile-safe product polish.
+          </p>
+          <div class="hero-actions">
+            <a href="#upgrades">Review upgrade concepts</a>
+            <a href="#implementation">See implementation notes</a>
+          </div>
+        </div>
+
+        <div class="metric-strip" aria-label="Current app summary">
+          <div class="metric">
+            <strong>130</strong>
+            <span>Catalog cocktails</span>
+          </div>
+          <div class="metric">
+            <strong>8</strong>
+            <span>Main app views</span>
+          </div>
+          <div class="metric">
+            <strong>7</strong>
+            <span>Recipe detail tabs</span>
+          </div>
+          <div class="metric">
+            <strong>1</strong>
+            <span>Local browser DB</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <main>
+      <section class="band" id="surface">
+        <div class="inner">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Current app surface</span>
+              <h2>What the app already does well</h2>
+            </div>
+            <p>
+              The existing code is concentrated in <code>src/App.tsx</code>, with persistent state in
+              <code>src/storage.ts</code> and the catalog in <code>src/data/catalog.ts</code>. The strongest upgrade path is
+              to keep the local-first workflow and make the user data more useful, portable, and service-ready.
+            </p>
+          </div>
+
+          <div class="surface-grid">
+            <article class="surface-item">
+              <span>Library</span>
+              <h3>Searchable cocktail catalog</h3>
+              <p>Users can search by cocktail name, family, base spirit, variations, and ingredients across the large static catalog.</p>
+            </article>
+            <article class="surface-item">
+              <span>Recipe workspace</span>
+              <h3>Detailed specs and tabs</h3>
+              <p>Each drink has ingredients, method, flavor notes, substitutions, variations, and batching guidance.</p>
+            </article>
+            <article class="surface-item">
+              <span>Home bar</span>
+              <h3>Inventory and shopping list</h3>
+              <p>The app compares recipe ingredients against stored inventory and surfaces drinks that are nearly makeable.</p>
+            </article>
+            <article class="surface-item">
+              <span>Service</span>
+              <h3>Batch planner</h3>
+              <p>The current calculator already handles servings, dilution, estimated ABV, bottle counts, cautions, and prep checklist state.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band alt" id="upgrades">
+        <div class="inner">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Upgrade concepts</span>
+              <h2>High-value features to consider next</h2>
+            </div>
+            <p>
+              Filter the concepts by product area. Priority reflects implementation value for this codebase, not just feature size.
+            </p>
+          </div>
+
+          <div class="filter-row" aria-label="Upgrade filters">
+            <button class="filter-button active" data-filter="all" type="button">All</button>
+            <button class="filter-button" data-filter="data" type="button">Data</button>
+            <button class="filter-button" data-filter="ux" type="button">UX</button>
+            <button class="filter-button" data-filter="barops" type="button">Bar ops</button>
+            <button class="filter-button" data-filter="quality" type="button">Quality</button>
+          </div>
+
+          <div class="upgrade-grid">
+            <article class="upgrade-card" data-category="data ux quality">
+              <div class="card-topline">
+                <span>Data safety</span>
+                <b class="priority now">P0 Now</b>
+              </div>
+              <h3>Export, import, and reset center</h3>
+              <p>Local storage is useful but fragile. Give users a real control panel for backing up saved recipes, notes, inventory, and collections.</p>
+              <ul>
+                <li>Download local DB as JSON</li>
+                <li>Import and validate a backup file</li>
+                <li>Show last backup date and object counts</li>
+              </ul>
+              <div class="tags">
+                <b>Low risk</b><b>Immediate trust</b><b>Storage</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="data">
+              <div class="card-topline">
+                <span>Real DB path</span>
+                <b class="priority next">P1 Next</b>
+              </div>
+              <h3>Optional cloud sync</h3>
+              <p>Keep offline-first localStorage, but add an optional account-backed sync layer for users who switch browsers or devices.</p>
+              <ul>
+                <li>SQLite or Supabase-backed profile state</li>
+                <li>Conflict handling by updated timestamp</li>
+                <li>Local fallback when offline</li>
+              </ul>
+              <div class="tags">
+                <b>Auth</b><b>Sync</b><b>Database</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="ux data">
+              <div class="card-topline">
+                <span>Search</span>
+                <b class="priority now">P0 Now</b>
+              </div>
+              <h3>Faceted search and sorting</h3>
+              <p>Search currently uses one broad text match. Add filters that match how people choose drinks: spirit, family, difficulty, prep time, glassware, and makeable status.</p>
+              <ul>
+                <li>Filter chips above results</li>
+                <li>Sort by makeable, saved, or fast prep</li>
+                <li>Saved search presets for party planning</li>
+              </ul>
+              <div class="tags">
+                <b>Catalog</b><b>Discovery</b><b>Fast win</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="barops data">
+              <div class="card-topline">
+                <span>Inventory</span>
+                <b class="priority now">P0 Now</b>
+              </div>
+              <h3>Ingredient intelligence</h3>
+              <p>The current ingredient matcher is text-based. A normalized ingredient model would understand aliases, categories, substitutions, bottle depletion, and freshness windows.</p>
+              <ul>
+                <li>Alias map for lime juice, fresh lime, lime</li>
+                <li>Stock levels and low-stock thresholds</li>
+                <li>Substitution-aware makeable scores</li>
+              </ul>
+              <div class="tags">
+                <b>Home bar</b><b>Matching</b><b>Data model</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="barops ux">
+              <div class="card-topline">
+                <span>Planning</span>
+                <b class="priority next">P1 Next</b>
+              </div>
+              <h3>Party mode and menu builder</h3>
+              <p>Extend saved specs and the batch planner into a dedicated event workflow for building a short menu, generating a shopping run, and estimating prep time.</p>
+              <ul>
+                <li>Pick 3 to 6 menu drinks</li>
+                <li>Aggregate all ingredients by serving count</li>
+                <li>Generate prep labels and service timeline</li>
+              </ul>
+              <div class="tags">
+                <b>Events</b><b>Batching</b><b>Shopping</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="ux quality">
+              <div class="card-topline">
+                <span>Recipe editor</span>
+                <b class="priority now">P0 Now</b>
+              </div>
+              <h3>Structured custom recipe editor</h3>
+              <p>The quick-add flow only captures a small draft. A proper editor would reduce bad data and make custom drinks feel first-class.</p>
+              <ul>
+                <li>Ingredient rows with amount, unit, name</li>
+                <li>Flavor meter controls and method steps</li>
+                <li>Duplicate detection before saving</li>
+              </ul>
+              <div class="tags">
+                <b>Custom recipes</b><b>Validation</b><b>Editor</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="barops quality">
+              <div class="card-topline">
+                <span>Tasting</span>
+                <b class="priority next">P1 Next</b>
+              </div>
+              <h3>Tasting log and adjustment history</h3>
+              <p>Notes exist today, but they are free text. Turn troubleshooting and notes into a history of measured changes and outcomes.</p>
+              <ul>
+                <li>Log issue, adjustment, result, rating</li>
+                <li>Compare versions of a custom spec</li>
+                <li>Suggest fixes from past outcomes</li>
+              </ul>
+              <div class="tags">
+                <b>Notes</b><b>Iteration</b><b>Flavor</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="ux quality">
+              <div class="card-topline">
+                <span>Responsive UX</span>
+                <b class="priority now">P0 Now</b>
+              </div>
+              <h3>Persistent mobile navigation</h3>
+              <p>The current sidebar is hover-driven on desktop. Mobile would benefit from a bottom nav or command sheet so core views are always reachable.</p>
+              <ul>
+                <li>Bottom tabs for Home, Search, Inventory, Batch</li>
+                <li>Command palette for faster desktop navigation</li>
+                <li>Keyboard shortcut labels only where functional</li>
+              </ul>
+              <div class="tags">
+                <b>Mobile</b><b>Navigation</b><b>Accessibility</b>
+              </div>
+            </article>
+
+            <article class="upgrade-card" data-category="quality data">
+              <div class="card-topline">
+                <span>App foundation</span>
+                <b class="priority later">P2 Later</b>
+              </div>
+              <h3>Split the large app module</h3>
+              <p>The main file carries views, helpers, state, and calculations. Splitting modules would make future database and editor work easier to maintain.</p>
+              <ul>
+                <li>Move batch math to a domain module</li>
+                <li>Move view components into feature folders</li>
+                <li>Centralize catalog and storage adapters</li>
+              </ul>
+              <div class="tags">
+                <b>Architecture</b><b>Maintainability</b><b>Scale</b>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="mockups">
+        <div class="inner">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Visual concepts</span>
+              <h2>How the upgrades could feel in the product</h2>
+            </div>
+            <p>
+              These are not separate products. They are lightweight interface directions that build on the current dark, tool-like app.
+            </p>
+          </div>
+
+          <div class="mock-grid">
+            <article class="mock-panel">
+              <div class="mock-visual" aria-hidden="true">
+                <div class="screen-bar">
+                  <i class="screen-dot"></i>
+                  <i class="screen-dot"></i>
+                  <i class="screen-dot"></i>
+                </div>
+                <div class="mock-row">
+                  <i class="mock-thumb"></i>
+                  <span class="mock-lines"><i></i><i></i></span>
+                  <b class="mock-pill">92%</b>
+                </div>
+                <div class="mock-row">
+                  <i class="mock-thumb"></i>
+                  <span class="mock-lines"><i></i><i></i></span>
+                  <b class="mock-pill">Ready</b>
+                </div>
+                <div class="mock-row">
+                  <i class="mock-thumb"></i>
+                  <span class="mock-lines"><i></i><i></i></span>
+                  <b class="mock-pill">Shop 2</b>
+                </div>
+              </div>
+              <div class="mock-copy">
+                <h3>Makeable score workbench</h3>
+                <p>Search cards can rank drinks by exact inventory match, substitutions, and missing ingredient cost.</p>
+              </div>
+            </article>
+
+            <article class="mock-panel">
+              <div class="mock-visual" aria-hidden="true">
+                <div class="screen-bar">
+                  <i class="screen-dot"></i>
+                  <i class="screen-dot"></i>
+                  <i class="screen-dot"></i>
+                </div>
+                <div class="mock-chart">
+                  <i style="height: 44%"></i>
+                  <i style="height: 76%"></i>
+                  <i style="height: 58%"></i>
+                  <i style="height: 90%"></i>
+                  <i style="height: 66%"></i>
+                  <i style="height: 38%"></i>
+                </div>
+                <div class="mock-mini-grid">
+                  <i></i>
+                  <i></i>
+                  <i></i>
+                  <i></i>
+                </div>
+              </div>
+              <div class="mock-copy">
+                <h3>Inventory intelligence dashboard</h3>
+                <p>Stock levels, bottle categories, low-stock alerts, and freshness windows can sit beside the existing home bar list.</p>
+              </div>
+            </article>
+
+            <article class="mock-panel">
+              <div class="mock-visual" aria-hidden="true">
+                <div class="screen-bar">
+                  <i class="screen-dot"></i>
+                  <i class="screen-dot"></i>
+                  <i class="screen-dot"></i>
+                </div>
+                <div class="mock-timeline">
+                  <i style="width: 92%"></i>
+                  <i style="width: 64%"></i>
+                  <i style="width: 78%"></i>
+                  <i style="width: 46%"></i>
+                  <i style="width: 84%"></i>
+                </div>
+                <div class="mock-row">
+                  <i class="mock-thumb"></i>
+                  <span class="mock-lines"><i></i><i></i></span>
+                  <b class="mock-pill">16 serves</b>
+                </div>
+              </div>
+              <div class="mock-copy">
+                <h3>Party prep timeline</h3>
+                <p>Batch planner can become an event timeline with labels, chilling steps, shopping impact, and service warnings.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band alt" id="roadmap">
+        <div class="inner">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Practical order</span>
+              <h2>A sane rollout sequence</h2>
+            </div>
+            <p>
+              This order starts with data safety and UX improvements, then moves into deeper product logic and architecture work.
+            </p>
+          </div>
+
+          <div class="roadmap-grid">
+            <article class="roadmap-column">
+              <span>Phase 1</span>
+              <h3>Make local data trustworthy</h3>
+              <ul>
+                <li>Export and import JSON backups</li>
+                <li>Reset confirmation with storage preview</li>
+                <li>Recipe editor validation</li>
+                <li>Faceted search chips</li>
+              </ul>
+            </article>
+            <article class="roadmap-column">
+              <span>Phase 2</span>
+              <h3>Make the bar workflow smarter</h3>
+              <ul>
+                <li>Ingredient alias database</li>
+                <li>Makeable score and substitution hints</li>
+                <li>Party menu builder</li>
+                <li>Aggregated shopping list</li>
+              </ul>
+            </article>
+            <article class="roadmap-column">
+              <span>Phase 3</span>
+              <h3>Make it portable and scalable</h3>
+              <ul>
+                <li>Optional synced account state</li>
+                <li>PWA install and offline cache</li>
+                <li>Module split by feature area</li>
+                <li>Versioned data migration layer</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="implementation">
+        <div class="inner">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Implementation map</span>
+              <h2>Where the work would land</h2>
+            </div>
+            <p>
+              The current repo does not include a backend database. These notes point to the local files that would change first.
+            </p>
+          </div>
+
+          <div class="implementation-grid">
+            <article class="implementation-item">
+              <span>Storage</span>
+              <h3>Version the local DB</h3>
+              <p>Add schema versioning, migrations, backup metadata, and import validation around the existing localStorage state.</p>
+              <ul>
+                <li>Keep the current default seed state</li>
+                <li>Guard imported objects before writing</li>
+                <li>Prepare a future sync adapter interface</li>
+              </ul>
+              <b class="file-pill">src/storage.ts</b>
+            </article>
+
+            <article class="implementation-item">
+              <span>Feature split</span>
+              <h3>Move views into feature folders</h3>
+              <p>Extract Home, Search, Recipe, Inventory, Batch, Collections, and Troubleshoot views from the monolithic app file.</p>
+              <ul>
+                <li>Preserve existing behavior first</li>
+                <li>Move helper functions after coverage or manual QA exists</li>
+                <li>Keep shared UI primitives small</li>
+              </ul>
+              <b class="file-pill">src/App.tsx</b>
+            </article>
+
+            <article class="implementation-item">
+              <span>Catalog</span>
+              <h3>Add ingredient taxonomy</h3>
+              <p>Create a normalized ingredient layer without rewriting all 130 catalog entries at once.</p>
+              <ul>
+                <li>Ingredient aliases and categories</li>
+                <li>Optional canonical ID per ingredient</li>
+                <li>Substitution and inventory scoring helpers</li>
+              </ul>
+              <b class="file-pill">src/data/catalog.ts</b>
+            </article>
+
+            <article class="implementation-item">
+              <span>Interface</span>
+              <h3>Upgrade navigation and mobile density</h3>
+              <p>Keep the dark app style, but make primary actions easier to reach on touch devices and small screens.</p>
+              <ul>
+                <li>Bottom navigation at mobile widths</li>
+                <li>Command palette for desktop</li>
+                <li>More stable spacing around dense controls</li>
+              </ul>
+              <b class="file-pill">src/App.css</b>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band alt">
+        <div class="inner">
+          <div class="closing">
+            <div>
+              <span class="eyebrow">Recommended first build</span>
+              <h2>Start with backup, faceted search, and a structured recipe editor.</h2>
+              <p>
+                Those three upgrades improve trust, discovery, and user-created data without forcing a backend decision too early.
+                After that, ingredient intelligence and party mode have a better foundation.
+              </p>
+            </div>
+            <div class="score" aria-label="Upgrade scores">
+              <div>
+                <strong>High</strong>
+                <span>User-visible value</span>
+              </div>
+              <div>
+                <strong>Low</strong>
+                <span>Backend dependency</span>
+              </div>
+              <div>
+                <strong>Medium</strong>
+                <span>Implementation effort</span>
+              </div>
+              <div>
+                <strong>Clean</strong>
+                <span>Future DB path</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const filterButtons = Array.from(document.querySelectorAll(".filter-button"));
+      const upgradeCards = Array.from(document.querySelectorAll(".upgrade-card"));
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+          upgradeCards.forEach((card) => {
+            const categories = card.dataset.category || "";
+            card.dataset.hidden = filter !== "all" && !categories.includes(filter);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
