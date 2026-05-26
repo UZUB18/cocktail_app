@@ -197,39 +197,80 @@ for (const cocktail of catalogCocktails) {
   }
 }
 
-const fallbackPhotoCredit = 'TheCocktailDB related cocktail-photo fallback'
-const fallbackPhotoPool = [
-  'https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/2en3jk1509557725.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/yk70e31606771240.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/7cll921606854636.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/k0508k1668422436.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/7dozeg1582578095.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/hrxfbl1606770327.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/samm5j1513706393.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/n0sx531504372951.jpg',
-  'https://www.thecocktaildb.com/images/media/drink/ggx0lv1613942306.jpg',
-]
+const fallbackPhotoCredit = 'Generated per-cocktail visual'
+const drinkColors = ['#c95f35', '#d59a31', '#b74848', '#a74367', '#7d9a43', '#d8c15a', '#b36a2d', '#6e8f7e']
+const garnishColors = ['#d9e36a', '#f2b950', '#9dcf71', '#da6d5f', '#e9dfb6', '#f07f3c']
 
-function fallbackPhotoUrl(seed: string) {
+function hashSeed(seed: string) {
   let hash = 0
   for (const character of seed) {
     hash = (hash * 31 + character.charCodeAt(0)) >>> 0
   }
-  return fallbackPhotoPool[hash % fallbackPhotoPool.length]
+  return hash
+}
+
+function escapeSvgText(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function svgDataUrl(svg: string) {
+  return `data:image/svg+xml,${encodeURIComponent(svg)
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')}`
+}
+
+function fallbackPhotoUrl(seed: string) {
+  const hash = hashSeed(seed)
+  const drink = drinkColors[hash % drinkColors.length]
+  const garnish = garnishColors[(hash >>> 4) % garnishColors.length]
+  const accent = garnishColors[(hash >>> 8) % garnishColors.length]
+  const glass = hash % 3
+  const title = escapeSvgText(seed || 'Custom cocktail')
+  const glassMarkup =
+    glass === 0
+      ? `<path d="M208 160h256l-86 208H294L208 160Z" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.55)" stroke-width="10"/><path d="M258 232h156l-46 104h-64l-46-104Z" fill="${drink}"/><path d="M330 368v88M268 456h124" stroke="rgba(255,255,255,.52)" stroke-width="12" stroke-linecap="round"/>`
+      : glass === 1
+        ? `<path d="M252 118h168l-22 330H274L252 118Z" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.55)" stroke-width="10"/><path d="M276 212h120l-14 196h-92l-14-196Z" fill="${drink}"/><path d="M282 154h108" stroke="rgba(255,255,255,.36)" stroke-width="10" stroke-linecap="round"/>`
+        : `<path d="M236 224c28 84 70 126 126 126s98-42 126-126H236Z" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.55)" stroke-width="10"/><path d="M274 250c23 42 53 62 88 62s65-20 88-62H274Z" fill="${drink}"/><path d="M362 350v82M292 432h140" stroke="rgba(255,255,255,.52)" stroke-width="12" stroke-linecap="round"/>`
+  const garnishMarkup =
+    hash % 2 === 0
+      ? `<circle cx="432" cy="154" r="34" fill="${garnish}" stroke="rgba(255,255,255,.55)" stroke-width="8"/><circle cx="432" cy="154" r="12" fill="rgba(8,7,6,.28)"/>`
+      : `<path d="M434 116c32 20 46 46 40 78-34-4-58-22-72-54 10-14 20-22 32-24Z" fill="${garnish}" stroke="rgba(255,255,255,.45)" stroke-width="7"/><path d="M402 140c28 5 48 22 60 50" stroke="rgba(8,7,6,.25)" stroke-width="6" stroke-linecap="round"/>`
+
+  return svgDataUrl(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 672 504" role="img" aria-labelledby="title">
+  <title id="title">${title}</title>
+  <defs>
+    <radialGradient id="glow" cx="38%" cy="18%" r="76%">
+      <stop offset="0" stop-color="${accent}" stop-opacity=".34"/>
+      <stop offset=".52" stop-color="#15100c"/>
+      <stop offset="1" stop-color="#070605"/>
+    </radialGradient>
+    <linearGradient id="bar" x1="0" x2="1">
+      <stop offset="0" stop-color="#f0d6a4" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#f0d6a4" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="672" height="504" fill="url(#glow)"/>
+  <path d="M0 404c120-28 215-28 330 0s220 28 342 0v100H0z" fill="#050403" opacity=".48"/>
+  <circle cx="218" cy="130" r="84" fill="${accent}" opacity=".1"/>
+  <circle cx="500" cy="340" r="132" fill="${drink}" opacity=".1"/>
+  <path d="M116 394h438" stroke="url(#bar)" stroke-width="14" stroke-linecap="round"/>
+  ${glassMarkup}
+  ${garnishMarkup}
+  <g opacity=".42" fill="#fff">
+    <circle cx="${178 + (hash % 60)}" cy="118" r="4"/>
+    <circle cx="${500 - (hash % 74)}" cy="94" r="3"/>
+    <circle cx="${466 + (hash % 38)}" cy="254" r="5"/>
+  </g>
+</svg>`)
 }
 
 function cocktailPhoto(cocktail: Pick<CatalogCocktail, 'id' | 'name' | 'imageUrl'>) {
-  return cocktail.imageUrl || fallbackPhotoUrl(cocktail.id || cocktail.name)
+  const seed = cocktail.id || cocktail.name
+  if (!cocktail.imageUrl || cocktail.imageUrl.startsWith('generated:')) return fallbackPhotoUrl(seed)
+  return cocktail.imageUrl
 }
 
 function App() {

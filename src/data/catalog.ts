@@ -300,8 +300,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Good for batching if lime is added same day.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Margarita"
+    "imageUrl": "generated:tommy-s-margarita",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "sidecar",
@@ -936,8 +936,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch alcohol; add lemon at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Whiskey Sour"
+    "imageUrl": "generated:paper-plane",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "naked-and-famous",
@@ -2927,8 +2927,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch non-citrus; citrus same day.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/2en3jk1509557725.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Zombie"
+    "imageUrl": "generated:saturn",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "painkiller",
@@ -3318,8 +3318,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Prep syrup/base; muddle fresh.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Margarita"
+    "imageUrl": "generated:whiskey-smash",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "sherry-cobbler",
@@ -3464,8 +3464,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Freezer or fridge batch friendly; oxidized components limit storage.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Negroni"
+    "imageUrl": "generated:bamboo",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "adonis",
@@ -3665,8 +3665,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build to order; chill everything.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Aperol Spritz"
+    "imageUrl": "generated:hugo-spritz",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "garibaldi",
@@ -3950,8 +3950,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Designed for batching; chill before service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Pina Colada"
+    "imageUrl": "generated:fish-house-punch",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "milk-punch",
@@ -4106,8 +4106,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch syrup, lime, tea, saline; soda at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hrxfbl1606773109.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: French 75"
+    "imageUrl": "generated:na-ginger-citrus-highball",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "na-nogroni",
@@ -4178,8 +4178,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch still components; stir with ice or add measured water.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Negroni"
+    "imageUrl": "generated:na-nogroni",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "na-sour",
@@ -4258,8 +4258,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Shake texture to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Margarita"
+    "imageUrl": "generated:na-sour",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "cosmopolitan",
@@ -4483,8 +4483,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch alcohol; lemon and absinthe rinse at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Whiskey Sour"
+    "imageUrl": "generated:corpse-reviver-no-2",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "between-the-sheets",
@@ -4696,8 +4696,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch rye and grenadine; citrus same day.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Whiskey Sour"
+    "imageUrl": "generated:ward-eight",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "gold-rush",
@@ -4764,8 +4764,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch bourbon and honey syrup; add lemon at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Whiskey Sour"
+    "imageUrl": "generated:gold-rush",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "brown-derby",
@@ -4832,8 +4832,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch bourbon and honey; juice same day.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Daiquiri"
+    "imageUrl": "generated:brown-derby",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "new-york-sour",
@@ -5044,8 +5044,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch all but lemon if serving soon; shake to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/2en3jk1509557725.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Zombie"
+    "imageUrl": "generated:trinidad-sour",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "caipirinha",
@@ -5184,8 +5184,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch gin/syrup/citrus briefly; shake mint to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Daiquiri"
+    "imageUrl": "generated:southside",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "eastside",
@@ -5262,8 +5262,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Prep base; muddle cucumber and mint fresh.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Margarita"
+    "imageUrl": "generated:eastside",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "army-and-navy",
@@ -5334,8 +5334,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch gin and orgeat; citrus at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Mai Tai"
+    "imageUrl": "generated:army-and-navy",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "20th-century",
@@ -5408,8 +5408,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch alcohol; lemon at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Margarita"
+    "imageUrl": "generated:20th-century",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "espresso-martini",
@@ -5822,8 +5822,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Excellent small freezer batch.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/yk70e31606771240.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Manhattan"
+    "imageUrl": "generated:red-hook",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "remember-the-maine",
@@ -5895,8 +5895,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch without absinthe rinse.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Negroni"
+    "imageUrl": "generated:remember-the-maine",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "toronto",
@@ -5965,8 +5965,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Freezer batch friendly.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/yk70e31606771240.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Manhattan"
+    "imageUrl": "generated:toronto",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "rusty-nail",
@@ -6155,8 +6155,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Freezer batch friendly.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/yk70e31606771240.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Manhattan"
+    "imageUrl": "generated:revolver",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "bijou",
@@ -6432,8 +6432,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Freezer batch; garnish to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/71t8581504353095.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Martini"
+    "imageUrl": "generated:gibson",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "50-50-martini",
@@ -6501,8 +6501,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Excellent freezer batch.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Negroni"
+    "imageUrl": "generated:50-50-martini",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "dirty-martini",
@@ -6632,8 +6632,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Freezer batch friendly.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Old Fashioned"
+    "imageUrl": "generated:hanky-panky",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "white-negroni",
@@ -6700,8 +6700,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Freezer or bottle batch friendly.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Negroni"
+    "imageUrl": "generated:white-negroni",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "kingston-negroni",
@@ -6766,8 +6766,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Excellent freezer batch.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Negroni"
+    "imageUrl": "generated:kingston-negroni",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "mezcal-negroni",
@@ -6833,8 +6833,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Freezer batch friendly.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Old Fashioned"
+    "imageUrl": "generated:mezcal-negroni",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "old-pal",
@@ -6968,8 +6968,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch Campari and vermouth; add bubbles at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hrxfbl1606773109.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: French 75"
+    "imageUrl": "generated:negroni-sbagliato",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "cuba-libre",
@@ -7102,8 +7102,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build to order with cold sparkling water.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Aperol Spritz"
+    "imageUrl": "generated:ranch-water",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "pimm-s-cup",
@@ -7183,8 +7183,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch Pimm's and fruit shortly; add bubbles at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/7cll921606854636.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Tom Collins"
+    "imageUrl": "generated:pimm-s-cup",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "chilcano",
@@ -7255,8 +7255,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch pisco, lime, bitters; add ginger at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Mojito"
+    "imageUrl": "generated:chilcano",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "gin-rickey",
@@ -7392,8 +7392,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/samm5j1513706393.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Paloma"
+    "imageUrl": "generated:horse-s-neck",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "pina-colada",
@@ -7615,8 +7615,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch rum and syrup; mint, lime, bitters at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Pina Colada"
+    "imageUrl": "generated:queen-s-park-swizzle",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "missionary-s-downfall",
@@ -7699,8 +7699,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Prep measured kits; blend to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Pina Colada"
+    "imageUrl": "generated:missionary-s-downfall",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "three-dots-and-a-dash",
@@ -7791,8 +7791,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch spirits and syrups; juices same day.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Pina Colada"
+    "imageUrl": "generated:three-dots-and-a-dash",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "jet-pilot",
@@ -7888,8 +7888,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch non-citrus; flash blend to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Mai Tai"
+    "imageUrl": "generated:jet-pilot",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "test-pilot",
@@ -7975,8 +7975,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch non-citrus; blend to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/2en3jk1509557725.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Zombie"
+    "imageUrl": "generated:test-pilot",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "kir-royale",
@@ -8226,8 +8226,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build to order with cold soda.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/7cll921606854636.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Tom Collins"
+    "imageUrl": "generated:rebujito",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "na-paloma",
@@ -8305,8 +8305,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch juice, syrup, saline; soda at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/k0508k1668422436.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Gin and Tonic"
+    "imageUrl": "generated:na-paloma",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "na-spritz",
@@ -8372,8 +8372,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Add soda at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Aperol Spritz"
+    "imageUrl": "generated:na-spritz",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "gin-fix",
@@ -8446,8 +8446,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch spirit and syrup; citrus and fruit at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Daiquiri"
+    "imageUrl": "generated:gin-fix",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "brandy-fix",
@@ -8519,8 +8519,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch brandy, curacao, syrup; citrus at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Mai Tai"
+    "imageUrl": "generated:brandy-fix",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "gin-basil-smash",
@@ -8666,8 +8666,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build fresh with mint.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Margarita"
+    "imageUrl": "generated:brandy-smash",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "brandy-julep",
@@ -8731,8 +8731,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch spirit and syrup; mint and ice at service.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Aperol Spritz"
+    "imageUrl": "generated:brandy-julep",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "champagne-julep",
@@ -8803,8 +8803,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hrxfbl1606773109.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: French 75"
+    "imageUrl": "generated:champagne-julep",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "port-flip",
@@ -8876,8 +8876,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Do not batch egg; prep liquid base only.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Whiskey Sour"
+    "imageUrl": "generated:port-flip",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "coffee-flip",
@@ -8949,8 +8949,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Shake eggs to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/n0sx531504372951.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Espresso Martini"
+    "imageUrl": "generated:coffee-flip",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "port-cobbler",
@@ -9021,8 +9021,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Daiquiri"
+    "imageUrl": "generated:port-cobbler",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "champagne-cobbler",
@@ -9099,8 +9099,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Build to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Aperol Spritz"
+    "imageUrl": "generated:champagne-cobbler",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "brandy-sling",
@@ -9173,8 +9173,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Easy bottle batch with water included.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/7cll921606854636.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Tom Collins"
+    "imageUrl": "generated:brandy-sling",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "gin-sling",
@@ -9318,8 +9318,8 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Batch batter separately; build mugs to order.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/ggx0lv1613942306.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Hot Toddy"
+    "imageUrl": "generated:hot-buttered-rum",
+    "imageCredit": "Generated per-cocktail visual"
   },
   {
     "id": "blue-blazer",
@@ -9385,7 +9385,7 @@ export const catalogCocktails: CatalogCocktail[] = [
     ],
     "batchingNotes": "Not a batch drink.",
     "source": "catalog",
-    "imageUrl": "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
-    "imageCredit": "TheCocktailDB related cocktail photo: Whiskey Sour"
+    "imageUrl": "generated:blue-blazer",
+    "imageCredit": "Generated per-cocktail visual"
   }
 ]
