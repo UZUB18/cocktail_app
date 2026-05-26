@@ -1,12 +1,27 @@
 import { catalogCocktails, type CatalogCocktail } from './data/catalog'
 
-export const STORAGE_SCHEMA_VERSION = 2
+export const STORAGE_SCHEMA_VERSION = 3
 
 export type StockStatus = 'full' | 'low' | 'empty'
 
 export type PartyMenuItem = {
   id: string
   servings: number
+}
+
+export type PracticeFocus = 'balance' | 'dilution' | 'speed' | 'aroma' | 'garnish'
+export type PracticeTechnique = 'shake' | 'stir' | 'build' | 'swizzle' | 'none'
+
+export type PracticeLog = {
+  id: string
+  cocktailId: string
+  cocktailName: string
+  date: string
+  focus: PracticeFocus
+  technique: PracticeTechnique
+  durationSeconds: number
+  notes: string
+  rating: number
 }
 
 export type StorageMeta = {
@@ -26,6 +41,7 @@ export type StoredState = {
   recentSearches: string[]
   notes: Record<string, string>
   partyMenu: PartyMenuItem[]
+  practiceLogs: PracticeLog[]
   storageMeta: StorageMeta
   selectedId: string
 }
@@ -49,6 +65,7 @@ export const defaultState: StoredState = {
     { id: 'negroni', servings: 12 },
     { id: 'margarita', servings: 12 },
   ],
+  practiceLogs: [],
   storageMeta: {
     schemaVersion: STORAGE_SCHEMA_VERSION,
   },
@@ -85,6 +102,21 @@ export function resetStoredState() {
 export function normalizeStoredState(parsed: Partial<StoredState>): StoredState {
   const inventory = cleanStringArray(parsed.inventory, defaultState.inventory)
   const stockLevels = parsed.inventoryLevels && typeof parsed.inventoryLevels === 'object' ? parsed.inventoryLevels : {}
+  const rawLogs = Array.isArray(parsed.practiceLogs) ? parsed.practiceLogs : []
+  const practiceLogs = rawLogs.map((log: any) => {
+    if (!log || typeof log !== 'object') return null
+    return {
+      id: typeof log.id === 'string' ? log.id : 'practice-' + Math.random(),
+      cocktailId: typeof log.cocktailId === 'string' ? log.cocktailId : '',
+      cocktailName: typeof log.cocktailName === 'string' ? log.cocktailName : '',
+      date: typeof log.date === 'string' ? log.date : new Date().toISOString(),
+      focus: ['balance', 'dilution', 'speed', 'aroma', 'garnish'].includes(log.focus) ? log.focus : 'balance',
+      technique: ['shake', 'stir', 'build', 'swizzle', 'none'].includes(log.technique) ? log.technique : 'none',
+      durationSeconds: typeof log.durationSeconds === 'number' ? log.durationSeconds : 0,
+      notes: typeof log.notes === 'string' ? log.notes : '',
+      rating: typeof log.rating === 'number' ? Math.max(1, Math.min(5, log.rating)) : 3,
+    }
+  }).filter(Boolean) as PracticeLog[]
 
   return {
     ...defaultState,
@@ -102,6 +134,7 @@ export function normalizeStoredState(parsed: Partial<StoredState>): StoredState 
     recentSearches: cleanStringArray(parsed.recentSearches, defaultState.recentSearches),
     notes: parsed.notes && typeof parsed.notes === 'object' ? parsed.notes : defaultState.notes,
     partyMenu: normalizePartyMenu(parsed.partyMenu),
+    practiceLogs,
     storageMeta: {
       schemaVersion: STORAGE_SCHEMA_VERSION,
       lastBackupAt: parsed.storageMeta?.lastBackupAt,
@@ -139,6 +172,7 @@ export function storageSummary(state: StoredState) {
     custom: state.customCocktails.length,
     notes: Object.keys(state.notes).length,
     partyDrinks: state.partyMenu.length,
+    practiceLogs: state.practiceLogs.length,
   }
 }
 

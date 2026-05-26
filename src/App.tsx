@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import {
   ArrowLeft,
   AlertTriangle,
@@ -19,11 +19,13 @@ import {
   Gauge,
   Home,
   Martini,
+  Menu,
   Minus,
   MoreHorizontal,
   Plus,
   RotateCcw,
   Save,
+  X,
   Search,
   Settings,
   Share2,
@@ -50,9 +52,13 @@ import {
   storageSummary,
   toggleItem,
   uniquePush,
+  STORAGE_SCHEMA_VERSION,
   type PartyMenuItem,
   type StockStatus,
   type StoredState,
+  type PracticeLog,
+  type PracticeFocus,
+  type PracticeTechnique,
 } from './storage'
 
 const tabs = [
@@ -74,6 +80,7 @@ const navItems = [
   { label: 'Batch Planner', icon: FlaskConical },
   { label: 'Party Mode', icon: Users },
   { label: 'Collections', icon: BookOpen },
+  { label: 'Practice Lab', icon: ClipboardList },
   { label: 'Troubleshoot', icon: Wrench },
 ] as const
 
@@ -235,7 +242,7 @@ function App() {
   const [activeView, setActiveView] = useState<View>(() => initialView())
   const [activeTab, setActiveTab] = useState<Tab>('Recipe')
   const [scale, setScale] = useState(1)
-  const [metric, setMetric] = useState(false)
+  const [metric, setMetric] = useState(true)
   const [query, setQuery] = useState('')
   const [servings, setServings] = useState(10)
   const [inventoryEntry, setInventoryEntry] = useState('')
@@ -246,6 +253,7 @@ function App() {
   const [storageMessage, setStorageMessage] = useState('')
   const [searchFilters, setSearchFilters] = useState<SearchFilters>(defaultSearchFilters)
   const [searchSort, setSearchSort] = useState<SearchSort>('relevance')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const saveTimer = useRef<number | undefined>(undefined)
   const latestStored = useRef(stored)
   const deferredQuery = useDeferredValue(query)
@@ -418,7 +426,7 @@ function App() {
       ...stored,
       storageMeta: {
         ...stored.storageMeta,
-        schemaVersion: 2,
+        schemaVersion: STORAGE_SCHEMA_VERSION,
         lastBackupAt: now,
       },
     }
@@ -479,18 +487,30 @@ function App() {
   const missingForSelected = (coverageById.get(selected.id) ?? fullIngredientCoverage).missing
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${sidebarOpen ? 'sidebar-open' : ''}`}>
       <div className="edge-hover-zone" aria-hidden="true" />
       <Sidebar
         activeView={activeView}
         collectionCount={stored.collectionIds.length}
         savedCount={stored.savedIds.length}
         shoppingCount={stored.shoppingList.length}
-        setActiveView={navigate}
+        setActiveView={(view) => {
+          navigate(view)
+          setSidebarOpen(false)
+        }}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
       />
 
       <section className="workspace">
         <header className="topbar">
+          <button
+            className="sidebar-toggle"
+            aria-label="Toggle navigation menu"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
           <div className="greeting">
             <Sparkles size={25} />
             <div>
@@ -700,9 +720,20 @@ function App() {
 
         {activeView === 'Troubleshoot' && (
           <TroubleshootView
+            cocktails={cocktails}
+            notes={stored.notes}
             selected={selected}
             setTrouble={setTrouble}
             trouble={trouble}
+            updateStored={updateStored}
+          />
+        )}
+
+        {activeView === 'Practice Lab' && (
+          <PracticeLabView
+            cocktails={cocktails}
+            selected={selected}
+            state={stored}
             updateStored={updateStored}
           />
         )}
@@ -717,21 +748,28 @@ function Sidebar({
   savedCount,
   setActiveView,
   shoppingCount,
+  sidebarOpen,
+  setSidebarOpen,
 }: {
   activeView: View
   collectionCount: number
   savedCount: number
   setActiveView: (view: View) => void
   shoppingCount: number
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
 }) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${sidebarOpen ? 'sidebar-visible' : ''}`}>
       <div className="brand">
         <Martini size={34} strokeWidth={1.6} />
         <div>
           <span>Cocktail</span>
           <span>Colleague</span>
         </div>
+        <button className="sidebar-close-btn" aria-label="Close sidebar" onClick={() => setSidebarOpen(false)}>
+          <X size={20} />
+        </button>
       </div>
 
       <nav className="nav-list" aria-label="Primary">
@@ -823,6 +861,7 @@ function HomeView({
   submitSearch: (query: string) => void
   toggleSave: (id: string) => void
 }) {
+  const [activeMenu, setActiveMenu] = useState<'explore' | 'shelf' | 'creator' | 'data'>('explore')
   const heroCocktail = byName(cocktails, 'Manhattan') || cocktails[0]
   const continueCocktail = selected || heroCocktail
   const featuredCocktails = ['Jungle Bird', 'Negroni', 'Margarita', 'Whiskey Smash']
@@ -885,374 +924,447 @@ function HomeView({
   return (
     <div className="home-page">
       <div className="home-left-column">
-        <section className="library-hero" style={{ '--hero-image': `url(${cocktailPhoto(heroCocktail)})` } as CSSProperties}>
-          <span className="eyebrow">Local-first. Private. Always yours.</span>
+        <div className="home-welcome">
+          <span className="eyebrow">Local-first · Private · Serverless</span>
           <h1>Your cocktail library, beautifully organized.</h1>
-          <p>
-            Build, search, save, and batch from your home bar. {catalogCocktails.length} cocktail specs, your recipes,
-            notes, collections, and inventory right in this browser.
-          </p>
-          <button className="primary-home-action" onClick={() => setActiveView('Search')}>
-            Browse all cocktails
-            <ChevronRight size={20} />
+        </div>
+
+        <nav className="home-menu-nav">
+          <button
+            className={`home-menu-btn ${activeMenu === 'explore' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('explore')}
+          >
+            <span className="menu-num">01</span>
+            <span className="menu-label">Explore Catalog</span>
           </button>
-        </section>
+          <button
+            className={`home-menu-btn ${activeMenu === 'shelf' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('shelf')}
+          >
+            <span className="menu-num">02</span>
+            <span className="menu-label">Barshelf & Stock</span>
+          </button>
+          <button
+            className={`home-menu-btn ${activeMenu === 'creator' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('creator')}
+          >
+            <span className="menu-num">03</span>
+            <span className="menu-label">Recipe Creator</span>
+          </button>
+          <button
+            className={`home-menu-btn ${activeMenu === 'data' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('data')}
+          >
+            <span className="menu-num">04</span>
+            <span className="menu-label">Data Center</span>
+          </button>
+        </nav>
 
-        <section className="featured-section">
-          <SectionTitle action="View all" onAction={() => setActiveView('Search')} title="Featured cocktails" />
-          <div className="featured-home-grid">
-            {featuredCocktails.map((cocktail) => (
-              <article className="featured-home-card" key={cocktail.id}>
-                <button onClick={() => onOpen(cocktail)}>
-                  <img alt={`${cocktail.name} cocktail`} loading="lazy" src={cocktailPhoto(cocktail)} />
-                  <span>
-                    <strong>{cocktail.name}</strong>
-                    <small>{[cocktail.family, cocktail.difficulty, cocktail.style].filter(Boolean).slice(0, 3).join(' - ')}</small>
-                  </span>
-                </button>
-                <button aria-label={`Save ${cocktail.name}`} onClick={() => toggleSave(cocktail.id)}>
-                  <Save fill={savedIds.includes(cocktail.id) ? 'currentColor' : 'none'} size={17} />
-                </button>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="collections-home">
-          <SectionTitle action="View all" onAction={() => setActiveView('Collections')} title="Collections" />
-          <div className="collection-tile-grid">
-            {collectionTiles.map((tile) => (
-              <button className="collection-tile" key={tile.label} onClick={() => runPresetSearch(tile.query)}>
-                <span>
-                  <tile.icon size={28} />
-                </span>
-                <strong>{tile.label}</strong>
-                <small>{tile.count} recipes</small>
-              </button>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <aside className="home-right-rail">
-        <section className="home-panel at-glance">
-          <SectionTitle action="Manage" onAction={() => setActiveView('Inventory')} title="At a glance" />
-          <div className="glance-grid">
-            <StatBlock label="Cocktails in catalog" value={`${cocktails.length}`} />
-            <StatBlock label="Saved favorites" value={`${savedCount}`} />
-            <StatBlock label="Ingredients in inventory" value={`${inventoryCount}`} />
-            <StatBlock label="Low stock restock soon" value={`${lowStock}`} />
-          </div>
-        </section>
-
-        <section className="home-panel continue-panel">
-          <SectionTitle action="View all" onAction={() => setActiveView('Recipes')} title="Continue where you left off" />
-          <div className="continue-card">
-            <img alt={`${continueCocktail.name} cocktail`} src={cocktailPhoto(continueCocktail)} />
-            <div>
-              <strong>{continueCocktail.name}</strong>
-              <span>{continueCocktail.source === 'custom' ? 'Local recipe' : continueCocktail.family}</span>
-              <div className="progress-track">
-                <i style={{ width: `${savedIds.includes(continueCocktail.id) ? 82 : 58}%` }} />
+        <div className="home-menu-content">
+          {activeMenu === 'explore' && (
+            <div className="menu-pane-fade">
+              <div className="search-bar-sim" onClick={() => setActiveView('Search')}>
+                <Search size={18} />
+                <span>Search cocktail names, ingredients, families...</span>
               </div>
-            </div>
-            <small>{savedIds.includes(continueCocktail.id) ? '82%' : '58%'}</small>
-            <button onClick={() => onOpen(continueCocktail)}>Open</button>
-          </div>
-        </section>
+              
+              <div className="collections-row">
+                {collectionTiles.map((tile) => (
+                  <button className="mini-collection-chip" key={tile.label} onClick={() => runPresetSearch(tile.query)}>
+                    <tile.icon size={15} />
+                    <span>{tile.label}</span>
+                    <small>{tile.count}</small>
+                  </button>
+                ))}
+              </div>
 
-        <section className="home-panel quick-add-panel">
-          <div className="panel-heading-row">
-            <h2>Structured recipe editor</h2>
-            <button onClick={onCreate}>Save recipe</button>
-          </div>
-          <div className="custom-editor-grid">
-            <input
-              aria-label="Cocktail name"
-              onChange={(event) => setCustomDraft({ ...customDraft, name: event.target.value })}
-              placeholder="Cocktail name"
-              value={customDraft.name}
-            />
-            <input
-              aria-label="Family"
-              onChange={(event) => setCustomDraft({ ...customDraft, family: event.target.value })}
-              placeholder="Family"
-              value={customDraft.family}
-            />
-            <select
-              aria-label="Base spirit"
-              onChange={(event) => setCustomDraft({ ...customDraft, baseSpirit: event.target.value })}
-              value={customDraft.baseSpirit}
-            >
-              <option value="">Base spirit</option>
-              {baseOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <input
-              aria-label="Style"
-              onChange={(event) => setCustomDraft({ ...customDraft, style: event.target.value })}
-              placeholder="Style"
-              value={customDraft.style}
-            />
-            <input
-              aria-label="Glassware"
-              onChange={(event) => setCustomDraft({ ...customDraft, glassware: event.target.value })}
-              placeholder="Glassware"
-              value={customDraft.glassware}
-            />
-            <input
-              aria-label="Ice"
-              onChange={(event) => setCustomDraft({ ...customDraft, ice: event.target.value })}
-              placeholder="Ice"
-              value={customDraft.ice}
-            />
-            <input
-              aria-label="Garnish"
-              onChange={(event) => setCustomDraft({ ...customDraft, garnish: event.target.value })}
-              placeholder="Garnish"
-              value={customDraft.garnish}
-            />
-            <input
-              aria-label="Prep time"
-              onChange={(event) => setCustomDraft({ ...customDraft, prepTime: event.target.value })}
-              placeholder="Prep time"
-              value={customDraft.prepTime}
-            />
-          </div>
-          {duplicateCustom && (
-            <div className="editor-warning">
-              <AlertTriangle size={16} />
-              {duplicateCustom.name} already exists. Rename this recipe before saving.
+              <div className="featured-home-section">
+                <SectionTitle action="Browse all" onAction={() => setActiveView('Search')} title="Featured Cocktails" />
+                <div className="featured-home-grid">
+                  {featuredCocktails.map((cocktail) => (
+                    <article className="featured-home-card" key={cocktail.id}>
+                      <button onClick={() => onOpen(cocktail)}>
+                        <img alt={`${cocktail.name} cocktail`} loading="lazy" src={cocktailPhoto(cocktail)} />
+                        <span>
+                          <strong>{cocktail.name}</strong>
+                          <small>{[cocktail.family, cocktail.difficulty, cocktail.style].filter(Boolean).slice(0, 3).join(' - ')}</small>
+                        </span>
+                      </button>
+                      <button aria-label={`Save ${cocktail.name}`} onClick={() => toggleSave(cocktail.id)}>
+                        <Save fill={savedIds.includes(cocktail.id) ? 'currentColor' : 'none'} size={17} />
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
-          <div className="structured-editor-block">
-            <span>Ingredients</span>
-            {customDraft.ingredients.map((ingredient, index) => (
-              <div className="ingredient-editor-row" key={index}>
-                <input
-                  aria-label={`Ingredient ${index + 1} amount`}
-                  onChange={(event) => updateCustomIngredient(index, 'amount', event.target.value)}
-                  placeholder="2"
-                  value={ingredient.amount}
-                />
-                <input
-                  aria-label={`Ingredient ${index + 1} unit`}
-                  onChange={(event) => updateCustomIngredient(index, 'unit', event.target.value)}
-                  placeholder="oz"
-                  value={ingredient.unit}
-                />
-                <input
-                  aria-label={`Ingredient ${index + 1} name`}
-                  onChange={(event) => updateCustomIngredient(index, 'name', event.target.value)}
-                  placeholder="Ingredient"
-                  value={ingredient.name}
-                />
-                <button
-                  aria-label={`Remove ingredient ${index + 1}`}
-                  onClick={() =>
-                    setCustomDraft({
-                      ...customDraft,
-                      ingredients:
-                        customDraft.ingredients.length > 1
-                          ? customDraft.ingredients.filter((_, currentIndex) => currentIndex !== index)
-                          : customDraft.ingredients,
-                    })
-                  }
-                >
-                  <Trash2 size={15} />
-                </button>
+
+          {activeMenu === 'shelf' && (
+            <div className="menu-pane-fade">
+              <div className="shelf-stats-row">
+                <div className="shelf-stat">
+                  <strong>{inventoryCount}</strong>
+                  <span>Ingredients</span>
+                </div>
+                <div className="shelf-stat">
+                  <strong>{wellStocked}</strong>
+                  <span>Well Stocked</span>
+                </div>
+                <div className="shelf-stat">
+                  <strong>{shoppingCount}</strong>
+                  <span>Missing / Low</span>
+                </div>
               </div>
-            ))}
-            <button
-              className="inline-editor-action"
-              onClick={() =>
-                setCustomDraft({
-                  ...customDraft,
-                  ingredients: [...customDraft.ingredients, { amount: '', unit: 'oz', name: '' }],
-                })
-              }
-            >
-              <Plus size={16} /> Add ingredient row
-            </button>
-          </div>
-          <div className="structured-editor-block">
-            <span>Method steps</span>
-            {customDraft.methodSteps.map((step, index) => (
-              <div className="method-editor-row" key={index}>
-                <input
-                  aria-label={`Method step ${index + 1}`}
-                  onChange={(event) => updateCustomStep(index, event.target.value)}
-                  placeholder={`Step ${index + 1}`}
-                  value={step}
-                />
-                <button
-                  aria-label={`Remove method step ${index + 1}`}
-                  onClick={() =>
-                    setCustomDraft({
-                      ...customDraft,
-                      methodSteps:
-                        customDraft.methodSteps.length > 1
-                          ? customDraft.methodSteps.filter((_, currentIndex) => currentIndex !== index)
-                          : customDraft.methodSteps,
-                    })
-                  }
-                >
-                  <Trash2 size={15} />
-                </button>
+
+              <div className="home-panel inventory-snapshot" style={{ margin: '16px 0 24px 0', border: '1px solid var(--line)', background: 'var(--panel-soft)' }}>
+                <SectionTitle action="Manage" onAction={() => setActiveView('Inventory')} title="Inventory Snapshot" />
+                <div className="inventory-bar" aria-label="Inventory status">
+                  <span style={{ flex: Math.max(wellStocked, 1), background: 'var(--green)' }} />
+                  <span style={{ flex: Math.max(runningLow, 1), background: 'var(--accent)' }} />
+                  <span style={{ flex: Math.max(outOfStock, lowStock > 0 ? 1 : 0.35) }} />
+                </div>
+                <div className="inventory-legend">
+                  <span>Well stocked <b>{wellStocked}</b></span>
+                  <span>Running low <b>{runningLow}</b></span>
+                  <span>Out of stock <b>{outOfStock}</b></span>
+                </div>
               </div>
-            ))}
-            <button
-              className="inline-editor-action"
-              onClick={() => setCustomDraft({ ...customDraft, methodSteps: [...customDraft.methodSteps, ''] })}
-            >
-              <Plus size={16} /> Add method step
-            </button>
-          </div>
-          <div className="structured-editor-block">
-            <span>Flavor profile</span>
-            <div className="flavor-editor-grid">
-              {['sweetness', 'acidity', 'bitterness', 'booziness', 'dilution'].map((key) => (
-                <label key={key}>
-                  {titleize(key)}
+
+              <div className="recommendations-panel" style={{ background: 'transparent', border: 0, padding: 0 }}>
+                <h3 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '18px', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--heading)' }}>
+                  Bar Intelligence <Sparkles size={16} />
+                </h3>
+                <div className="rec-grid">
+                  <button className="rec-action-item" onClick={() => setActiveView('Inventory')}>
+                    <ShoppingBag size={18} />
+                    <div>
+                      <strong>Low on {lowStock} ingredients</strong>
+                      <span>View restock list</span>
+                    </div>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button className="rec-action-item" onClick={() => setActiveView('Batch Planner')}>
+                    <FlaskConical size={18} />
+                    <div>
+                      <strong>Try a batch recipe</strong>
+                      <span>Scale cocktail specs for 8+ guests</span>
+                    </div>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button className="rec-action-item" onClick={() => setActiveView('Party Mode')}>
+                    <Users size={18} />
+                    <div>
+                      <strong>Party menu planner</strong>
+                      <span>Aggregate prep list and glass counts</span>
+                    </div>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button className="rec-action-item" onClick={() => setActiveView('Practice Lab')}>
+                    <ClipboardList size={18} />
+                    <div>
+                      <strong>Practice Lab technique workbook</strong>
+                      <span>Train on balance, dilution, and timing</span>
+                    </div>
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeMenu === 'creator' && (
+            <div className="menu-pane-fade">
+              <section className="home-panel quick-add-panel" style={{ border: '1px solid var(--line)', background: 'var(--panel-soft)' }}>
+                <div className="panel-heading-row">
+                  <h2>Structured Recipe Editor</h2>
+                  <button onClick={onCreate}>Save Recipe</button>
+                </div>
+                <div className="custom-editor-grid">
+                  <input
+                    aria-label="Cocktail name"
+                    onChange={(event) => setCustomDraft({ ...customDraft, name: event.target.value })}
+                    placeholder="Cocktail name"
+                    value={customDraft.name}
+                  />
+                  <input
+                    aria-label="Family"
+                    onChange={(event) => setCustomDraft({ ...customDraft, family: event.target.value })}
+                    placeholder="Family"
+                    value={customDraft.family}
+                  />
                   <select
-                    value={customDraft.flavorProfile[key]}
-                    onChange={(event) =>
+                    aria-label="Base spirit"
+                    onChange={(event) => setCustomDraft({ ...customDraft, baseSpirit: event.target.value })}
+                    value={customDraft.baseSpirit}
+                  >
+                    <option value="">Base spirit</option>
+                    {baseOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    aria-label="Style"
+                    onChange={(event) => setCustomDraft({ ...customDraft, style: event.target.value })}
+                    placeholder="Style"
+                    value={customDraft.style}
+                  />
+                  <input
+                    aria-label="Glassware"
+                    onChange={(event) => setCustomDraft({ ...customDraft, glassware: event.target.value })}
+                    placeholder="Glassware"
+                    value={customDraft.glassware}
+                  />
+                  <input
+                    aria-label="Ice"
+                    onChange={(event) => setCustomDraft({ ...customDraft, ice: event.target.value })}
+                    placeholder="Ice"
+                    value={customDraft.ice}
+                  />
+                  <input
+                    aria-label="Garnish"
+                    onChange={(event) => setCustomDraft({ ...customDraft, garnish: event.target.value })}
+                    placeholder="Garnish"
+                    value={customDraft.garnish}
+                  />
+                  <input
+                    aria-label="Prep time"
+                    onChange={(event) => setCustomDraft({ ...customDraft, prepTime: event.target.value })}
+                    placeholder="Prep time"
+                    value={customDraft.prepTime}
+                  />
+                </div>
+                {duplicateCustom && (
+                  <div className="editor-warning">
+                    <AlertTriangle size={16} />
+                    {duplicateCustom.name} already exists. Rename this recipe before saving.
+                  </div>
+                )}
+                <div className="structured-editor-block">
+                  <span>Ingredients</span>
+                  {customDraft.ingredients.map((ingredient, index) => (
+                    <div className="ingredient-editor-row" key={index}>
+                      <input
+                        aria-label={`Ingredient ${index + 1} amount`}
+                        onChange={(event) => updateCustomIngredient(index, 'amount', event.target.value)}
+                        placeholder="2"
+                        value={ingredient.amount}
+                      />
+                      <input
+                        aria-label={`Ingredient ${index + 1} unit`}
+                        onChange={(event) => updateCustomIngredient(index, 'unit', event.target.value)}
+                        placeholder="oz"
+                        value={ingredient.unit}
+                      />
+                      <input
+                        aria-label={`Ingredient ${index + 1} name`}
+                        onChange={(event) => updateCustomIngredient(index, 'name', event.target.value)}
+                        placeholder="Ingredient"
+                        value={ingredient.name}
+                      />
+                      <button
+                        aria-label={`Remove ingredient ${index + 1}`}
+                        onClick={() =>
+                          setCustomDraft({
+                            ...customDraft,
+                            ingredients:
+                              customDraft.ingredients.length > 1
+                                ? customDraft.ingredients.filter((_, currentIndex) => currentIndex !== index)
+                                : customDraft.ingredients,
+                          })
+                        }
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    className="inline-editor-action"
+                    onClick={() =>
                       setCustomDraft({
                         ...customDraft,
-                        flavorProfile: { ...customDraft.flavorProfile, [key]: event.target.value },
+                        ingredients: [...customDraft.ingredients, { amount: '', unit: 'oz', name: '' }],
                       })
                     }
                   >
-                    {['low', 'medium-low', 'medium', 'medium-high', 'high'].map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-            </div>
-            <textarea
-              aria-label="Why this recipe works"
-              onChange={(event) => setCustomDraft({ ...customDraft, whyItWorks: event.target.value })}
-              placeholder="Why it works, intended balance, or tasting note..."
-              value={customDraft.whyItWorks}
-            />
-          </div>
-          {customMessage && <p className="status-message">{customMessage}</p>}
-        </section>
-
-        <section className="home-panel storage-control-panel">
-          <div className="panel-heading-row">
-            <h2>Local data center</h2>
-            <button onClick={onExportBackup}>
-              <FileDown size={16} /> Export
-            </button>
-          </div>
-          <div className="storage-stats compact">
-            <StatBlock label="Saved" value={`${summary.saved}`} />
-            <StatBlock label="Custom" value={`${summary.custom}`} />
-            <StatBlock label="Inventory" value={`${summary.inventory}`} />
-            <StatBlock label="Party menu" value={`${summary.partyDrinks}`} />
-          </div>
-          <div className="storage-meta-grid">
-            <span>Last backup <b>{state.storageMeta.lastBackupAt ? formatDateTime(state.storageMeta.lastBackupAt) : 'Never'}</b></span>
-            <span>Last import <b>{state.storageMeta.lastImportAt ? formatDateTime(state.storageMeta.lastImportAt) : 'Never'}</b></span>
-          </div>
-          <div className="storage-actions">
-            <label>
-              <FileUp size={16} />
-              Import JSON
-              <input
-                accept="application/json,.json"
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (file) onImportBackup(file)
-                  event.currentTarget.value = ''
-                }}
-                type="file"
-              />
-            </label>
-            <button className="danger-button" onClick={onResetStorage}>
-              <RotateCcw size={16} /> Reset starter data
-            </button>
-          </div>
-          {storageMessage && <p className="status-message">{storageMessage}</p>}
-        </section>
-
-        <div className="rail-two-column">
-          <section className="home-panel activity-panel">
-            <SectionTitle action="View all" onAction={() => setActiveView('Search')} title="Recent activity" />
-            <div className="activity-list">
-              {activityItems.map((item) => (
-                <div className="activity-item" key={item.title}>
-                  <span>
-                    <item.icon size={16} />
-                  </span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <small>{item.detail}</small>
-                  </div>
+                    <Plus size={16} /> Add ingredient row
+                  </button>
                 </div>
-              ))}
+                <div className="structured-editor-block">
+                  <span>Method steps</span>
+                  {customDraft.methodSteps.map((step, index) => (
+                    <div className="method-editor-row" key={index}>
+                      <input
+                        aria-label={`Method step ${index + 1}`}
+                        onChange={(event) => updateCustomStep(index, event.target.value)}
+                        placeholder={`Step ${index + 1}`}
+                        value={step}
+                      />
+                      <button
+                        aria-label={`Remove method step ${index + 1}`}
+                        onClick={() =>
+                          setCustomDraft({
+                            ...customDraft,
+                            methodSteps:
+                              customDraft.methodSteps.length > 1
+                                ? customDraft.methodSteps.filter((_, currentIndex) => currentIndex !== index)
+                                : customDraft.methodSteps,
+                          })
+                        }
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    className="inline-editor-action"
+                    onClick={() => setCustomDraft({ ...customDraft, methodSteps: [...customDraft.methodSteps, ''] })}
+                  >
+                    <Plus size={16} /> Add method step
+                  </button>
+                </div>
+                <div className="structured-editor-block">
+                  <span>Flavor profile</span>
+                  <div className="flavor-editor-grid">
+                    {['sweetness', 'acidity', 'bitterness', 'booziness', 'dilution'].map((key) => (
+                      <label key={key}>
+                        {titleize(key)}
+                        <select
+                          value={customDraft.flavorProfile[key]}
+                          onChange={(event) =>
+                            setCustomDraft({
+                              ...customDraft,
+                              flavorProfile: { ...customDraft.flavorProfile, [key]: event.target.value },
+                            })
+                          }
+                        >
+                          {['low', 'medium-low', 'medium', 'medium-high', 'high'].map((option) => (
+                            <option key={option}>{option}</option>
+                          ))}
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+                  <textarea
+                    aria-label="Why this recipe works"
+                    onChange={(event) => setCustomDraft({ ...customDraft, whyItWorks: event.target.value })}
+                    placeholder="Why it works, intended balance, or tasting note..."
+                    value={customDraft.whyItWorks}
+                  />
+                </div>
+                {customMessage && <p className="status-message">{customMessage}</p>}
+              </section>
             </div>
-          </section>
+          )}
 
-          <section className="home-panel recommendations-panel">
-            <h2>
-              Smart recommendations
-              <Sparkles size={16} />
-            </h2>
-            <button onClick={() => setActiveView('Inventory')}>
-              <ShoppingBag size={18} />
-              <span>
-                Low on {lowStock} ingredients
-                <small>View restock list</small>
-              </span>
-              <ChevronRight size={18} />
-            </button>
-            <button onClick={() => setActiveView('Batch Planner')}>
-              <FlaskConical size={18} />
-              <span>
-                Try a batch recipe
-                <small>Make 8+ drinks at once</small>
-              </span>
-              <ChevronRight size={18} />
-            </button>
-            <button onClick={() => setActiveView('Party Mode')}>
-              <Users size={18} />
-              <span>
-                Build a party menu
-                <small>Aggregate shopping and prep</small>
-              </span>
-              <ChevronRight size={18} />
-            </button>
-            <button onClick={() => runPresetSearch(continueCocktail.family)}>
-              <Shuffle size={18} />
-              <span>
-                Explore similar
-                <small>Based on your favorites</small>
-              </span>
-              <ChevronRight size={18} />
-            </button>
-          </section>
+          {activeMenu === 'data' && (
+            <div className="menu-pane-fade">
+              <section className="home-panel storage-control-panel" style={{ border: '1px solid var(--line)', background: 'var(--panel-soft)' }}>
+                <div className="panel-heading-row">
+                  <h2>Local Data Center</h2>
+                  <button onClick={onExportBackup}>
+                    <FileDown size={16} /> Export JSON
+                  </button>
+                </div>
+                <div className="storage-stats compact">
+                  <StatBlock label="Saved" value={`${summary.saved}`} />
+                  <StatBlock label="Custom" value={`${summary.custom}`} />
+                  <StatBlock label="Inventory" value={`${summary.inventory}`} />
+                  <StatBlock label="Party menu" value={`${summary.partyDrinks}`} />
+                  <StatBlock label="Practice logs" value={`${summary.practiceLogs ?? 0}`} />
+                </div>
+                <div className="storage-meta-grid">
+                  <span>Last backup <b>{state.storageMeta.lastBackupAt ? formatDateTime(state.storageMeta.lastBackupAt) : 'Never'}</b></span>
+                  <span>Last import <b>{state.storageMeta.lastImportAt ? formatDateTime(state.storageMeta.lastImportAt) : 'Never'}</b></span>
+                </div>
+                <div className="storage-actions">
+                  <label>
+                    <FileUp size={16} />
+                    Import JSON
+                    <input
+                      accept="application/json,.json"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0]
+                        if (file) onImportBackup(file)
+                        event.currentTarget.value = ''
+                      }}
+                      type="file"
+                    />
+                  </label>
+                  <button className="danger-button" onClick={onResetStorage}>
+                    <RotateCcw size={16} /> Reset Starter Data
+                  </button>
+                </div>
+                {storageMessage && <p className="status-message">{storageMessage}</p>}
+              </section>
+
+              <section className="home-panel activity-panel" style={{ marginTop: '16px', border: '1px solid var(--line)', background: 'var(--panel-soft)' }}>
+                <SectionTitle action="View Search" onAction={() => setActiveView('Search')} title="Recent Activity" />
+                <div className="activity-list">
+                  {activityItems.map((item) => (
+                    <div className="activity-item" key={item.title}>
+                      <span>
+                        <item.icon size={16} />
+                      </span>
+                      <div>
+                        <strong>{item.title}</strong>
+                        <small>{item.detail}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
         </div>
+      </div>
 
-        <section className="home-panel inventory-snapshot">
-          <SectionTitle action="View inventory" onAction={() => setActiveView('Inventory')} title="Inventory snapshot" />
-          <div className="inventory-bar" aria-label="Inventory status">
-            <span style={{ flex: Math.max(wellStocked, 1) }} />
-            <span style={{ flex: Math.max(runningLow, 1) }} />
-            <span style={{ flex: Math.max(outOfStock, lowStock > 0 ? 1 : 0.35) }} />
+      <div className="showcase-container">
+        <div className="showcase-card">
+          <div className="showcase-image-wrap">
+            <img
+              alt={`${continueCocktail.name} cocktail`}
+              className="showcase-img"
+              src={cocktailPhoto(continueCocktail)}
+            />
+            <div className="showcase-gradient-overlay" />
           </div>
-          <div className="inventory-legend">
-            <span>Well stocked <b>{wellStocked}</b></span>
-            <span>Running low <b>{runningLow}</b></span>
-            <span>Out of stock <b>{outOfStock}</b></span>
+          <div className="showcase-details">
+            <div className="showcase-header">
+              <span className="showcase-eyebrow">{continueCocktail.family}</span>
+              <h2 className="showcase-title">{continueCocktail.name}</h2>
+            </div>
+            
+            <p className="showcase-description">
+              {continueCocktail.style || continueCocktail.whyItWorks}
+            </p>
+            
+            <div className="showcase-meta">
+              <div className="showcase-meta-item">
+                <span>Spirit</span>
+                <strong>{continueCocktail.baseSpirit}</strong>
+              </div>
+              <div className="showcase-meta-item">
+                <span>Prep</span>
+                <strong>{continueCocktail.prepTime}</strong>
+              </div>
+              <div className="showcase-meta-item">
+                <span>Glass</span>
+                <strong>{continueCocktail.glassware}</strong>
+              </div>
+            </div>
+
+            <div className="showcase-footer">
+              <button className="showcase-action-btn" onClick={() => onOpen(continueCocktail)}>
+                Open Spec
+                <ChevronRight size={18} />
+              </button>
+            </div>
           </div>
-        </section>
-      </aside>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1423,6 +1535,7 @@ function SearchView({
             key={cocktail.id}
             coverage={coverageById.get(cocktail.id) ?? ingredientCoverage(cocktail, inventory, inventoryLevels)}
             onOpen={onOpen}
+            query={query}
           />
         ))}
       </div>
@@ -1464,6 +1577,7 @@ function RecipeDetail({
   const isSaved = savedIds.includes(selected.id)
   const isCollected = collectionIds.includes(selected.id)
   const imageUrl = cocktailPhoto(selected)
+  const [openSubstIngredient, setOpenSubstIngredient] = useState<string | null>(null)
 
   return (
     <div className="page">
@@ -1560,6 +1674,14 @@ function RecipeDetail({
               Reset
             </button>
           </div>
+          <button className="rail-link" onClick={() => setActiveView('Practice Lab')}>
+            <ClipboardList />
+            <span>
+              Practice This Drink
+              <small>Train technique & log tasting</small>
+            </span>
+            <ChevronRight />
+          </button>
           <button className="rail-link" onClick={() => setActiveView('Batch Planner')}>
             <FlaskConical />
             <span>
@@ -1614,17 +1736,43 @@ function RecipeDetail({
                 </label>
               </header>
               <div className="ingredient-list">
-                {selected.ingredients.map((ingredient, index) => (
-                  <div className="ingredient-row" key={`${ingredient.name}-${index}`}>
-                    <strong>{formatIngredient(ingredient, scale, metric)}</strong>
-                    <BottleWine size={18} />
-                    <span>
-                      {titleize(ingredient.name)}
-                      <small>{ingredient.unit || selected.family}</small>
-                    </span>
-                    <MoreHorizontal size={16} />
-                  </div>
-                ))}
+                {selected.ingredients.map((ingredient, index) => {
+                  const isMissing = missingForSelected.includes(ingredient.name.toLowerCase())
+                  const substs = findSubstitutes(ingredient.name)
+                  return (
+                    <div key={`${ingredient.name}-${index}`} className="ingredient-row-wrapper">
+                      <div
+                        className={`ingredient-row ${isMissing ? 'missing' : ''} ${openSubstIngredient === ingredient.name ? 'active' : ''}`}
+                        onClick={() => isMissing && setOpenSubstIngredient(openSubstIngredient === ingredient.name ? null : ingredient.name)}
+                        style={{ cursor: isMissing ? 'pointer' : 'default' }}
+                      >
+                        <strong>{formatIngredient(ingredient, scale, metric)}</strong>
+                        <BottleWine size={18} />
+                        <span>
+                          {titleize(ingredient.name)}
+                          {isMissing && <small className="subst-avail-tag">Tap for substitutes</small>}
+                        </span>
+                        {isMissing ? <Wrench size={16} style={{ color: 'var(--accent)' }} /> : <MoreHorizontal size={16} />}
+                      </div>
+                      {isMissing && openSubstIngredient === ingredient.name && (
+                        <div className="subst-expanded-drawer">
+                          <span className="subst-drawer-title">Alternative matches</span>
+                          <div className="subst-chips-list">
+                            {substs.map((sub) => (
+                              <span key={sub} className="subst-chip">
+                                <strong>{titleize(sub)}</strong>
+                                <small>85% Match</small>
+                              </span>
+                            ))}
+                            {substs.length === 0 && (
+                              <span className="subst-none-message">No exact substitutes. Try standard spirit type.</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
               <button
                 className="add-row"
@@ -1770,23 +1918,62 @@ function VariationPanel({
 
 function FlavorPanel({ selected }: { selected: CatalogCocktail }) {
   const meters = flavorMeters(selected)
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
+
+  const ySweet = 50 - (meters[0].value / 8) * 38
+  const xSpirit = 50 + (meters[3].value / 8) * 38
+  const yBitter = 50 + (meters[2].value / 8) * 38
+  const xSour = 50 - (meters[1].value / 8) * 38
+  const points = `50,${ySweet} ${xSpirit},50 50,${yBitter} ${xSour},50`
+
   return (
     <>
       <section className="panel glance-panel">
-        <h2>At a Glance</h2>
-        {meters.map((meter) => (
-          <div className="meter-row" key={meter.label}>
-            <span>{meter.label}</span>
-            <div>
-              {Array.from({ length: 9 }).map((_, index) => (
-                <i className={index < meter.value ? 'filled' : ''} key={index} />
-              ))}
-            </div>
+        <h2>Tasting Balance</h2>
+        <div className="radar-layout">
+          <div className="radar-chart-container">
+            <svg viewBox="0 0 100 100" className="radial-flavor-svg">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="var(--line-strong)" strokeWidth="0.5" />
+              <circle cx="50" cy="50" r="28.5" fill="none" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2,2" />
+              <circle cx="50" cy="50" r="19" fill="none" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2,2" />
+              <circle cx="50" cy="50" r="9.5" fill="none" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2,2" />
+
+              <line x1="50" y1="12" x2="50" y2="88" stroke="var(--line)" strokeWidth="0.5" />
+              <line x1="12" y1="50" x2="88" y2="50" stroke="var(--line)" strokeWidth="0.5" />
+
+              <text x="50" y="8" textAnchor="middle" className="radar-label-text">Sweet</text>
+              <text x="92" y="52" textAnchor="start" className="radar-label-text">Booze</text>
+              <text x="50" y="96" textAnchor="middle" className="radar-label-text">Bitter</text>
+              <text x="8" y="52" textAnchor="end" className="radar-label-text">Sour</text>
+
+              <polygon
+                points={points}
+                fill="rgba(var(--accent-rgb), 0.2)"
+                stroke="var(--accent)"
+                strokeWidth="1.5"
+                className="radar-polygon"
+              />
+
+              <circle cx="50" cy={ySweet} r="2.5" fill="var(--heading)" stroke="var(--accent)" strokeWidth="1" className="radar-node" onMouseEnter={() => setActiveTooltip(`Sweetness: ${selected.flavorProfile.sweetness || 'medium'}`)} onMouseLeave={() => setActiveTooltip(null)} />
+              <circle cx={xSpirit} cy="50" r="2.5" fill="var(--heading)" stroke="var(--accent)" strokeWidth="1" className="radar-node" onMouseEnter={() => setActiveTooltip(`Spirit: ${selected.flavorProfile.booziness || 'medium'}`)} onMouseLeave={() => setActiveTooltip(null)} />
+              <circle cx="50" cy={yBitter} r="2.5" fill="var(--heading)" stroke="var(--accent)" strokeWidth="1" className="radar-node" onMouseEnter={() => setActiveTooltip(`Bitterness: ${selected.flavorProfile.bitterness || 'none'}`)} onMouseLeave={() => setActiveTooltip(null)} />
+              <circle cx={xSour} cy="50" r="2.5" fill="var(--heading)" stroke="var(--accent)" strokeWidth="1" className="radar-node" onMouseEnter={() => setActiveTooltip(`Acidity: ${selected.flavorProfile.acidity || 'medium'}`)} onMouseLeave={() => setActiveTooltip(null)} />
+            </svg>
+            {activeTooltip && <div className="radar-tooltip">{activeTooltip}</div>}
           </div>
-        ))}
-        <p>Strength: {titleize(selected.flavorProfile.booziness || selected.difficulty)}</p>
-        <div className="strength-line">
-          <span style={{ width: `${Math.max(22, meters[3]?.value * 9 || 34)}%` }} />
+
+          <div className="radar-metrics-list">
+            {meters.map((meter) => (
+              <div className="meter-row" key={meter.label}>
+                <span>{meter.label}</span>
+                <div className="segmented-dots">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <i className={index < meter.value ? 'filled' : ''} key={index} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -2502,49 +2689,695 @@ function CollectionsView({
 }
 
 function TroubleshootView({
+  cocktails,
+  notes,
   selected,
   setTrouble,
   trouble,
   updateStored,
 }: {
+  cocktails: CatalogCocktail[]
+  notes: Record<string, string>
   selected: CatalogCocktail
   setTrouble: (trouble: string) => void
   trouble: string
   updateStored: (updater: (state: StoredState) => StoredState) => void
 }) {
+  const [cocktailSearch, setCocktailSearch] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [customNote, setCustomNote] = useState('')
+  const [appliedFixes, setAppliedFixes] = useState<Set<string>>(new Set())
+  const [toastMessage, setToastMessage] = useState('')
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    setCustomNote(`Troubleshoot (${trouble}): ${troubleFixes[trouble]?.[0] || ''}`)
+    setAppliedFixes(new Set())
+  }, [trouble, selected])
+
+  const filteredCocktails = useMemo(() => {
+    if (!cocktailSearch.trim()) return cocktails.slice(0, 8)
+    const clean = cocktailSearch.toLowerCase()
+    return cocktails
+      .filter((c) => c.name.toLowerCase().includes(clean) || c.family.toLowerCase().includes(clean))
+      .slice(0, 8)
+  }, [cocktails, cocktailSearch])
+
+  const toggleFix = (fix: string) => {
+    setAppliedFixes((prev) => {
+      const next = new Set(prev)
+      if (next.has(fix)) {
+        next.delete(fix)
+      } else {
+        next.add(fix)
+      }
+      return next
+    })
+  };
+
+  const handleSaveNote = () => {
+    updateStored((state) => ({
+      ...state,
+      notes: {
+        ...state.notes,
+        [selected.id]: `${state.notes[selected.id] || ''}\n${customNote}`.trim(),
+      },
+    }))
+    setToastMessage(`Diagnosis saved to ${selected.name}!`)
+    setTimeout(() => setToastMessage(''), 3000)
+  }
+
+  const getFailureDescription = (mode: string) => {
+    switch (mode) {
+      case 'Too sweet': return 'Sugar overload'
+      case 'Too sour': return 'Citrus imbalance'
+      case 'Watery': return 'Over-diluted / Flat'
+      case 'Flat': return 'Lacks crisp contrast'
+      case 'Too bitter': return 'Dominant bitterness'
+      case 'Hot': return 'High alcohol burn'
+      default: return 'Flawed balance'
+    }
+  }
+
+  const currentNotes = notes[selected.id] || ''
+
   return (
     <div className="page view-page">
-      <ViewHeader eyebrow="Troubleshoot" title={`Fix a flawed ${selected.name} or any similar drink`} />
-      <section className="split-grid">
-        <div className="panel">
-          <h2>Failure Mode</h2>
-          <select value={trouble} onChange={(event) => setTrouble(event.target.value)}>
-            {Object.keys(troubleFixes).map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
-          <div className="tab-content">
-            {troubleFixes[trouble].map((fix) => (
-              <p key={fix}>{fix}</p>
-            ))}
+      <ViewHeader eyebrow="Troubleshoot Studio" title="Diagnose & refine your cocktails" />
+      
+      {toastMessage && (
+        <div className="diag-toast-alert">
+          <Check size={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      <section className="split-grid troubleshoot-studio">
+        <div className="panel studio-left-pane">
+          <div className="cocktail-swap-selector" ref={dropdownRef}>
+            <label className="section-label">Selected Cocktail</label>
+            <div className="selector-input-wrap">
+              <input
+                type="text"
+                placeholder={`Currently: ${selected.name} (Type to change...)`}
+                value={cocktailSearch}
+                onChange={(e) => {
+                  setCocktailSearch(e.target.value)
+                  setShowDropdown(true)
+                }}
+                onFocus={() => setShowDropdown(true)}
+              />
+              {showDropdown && (
+                <div className="selector-dropdown">
+                  {filteredCocktails.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        updateStored((state) => ({ ...state, selectedId: c.id }))
+                        setCocktailSearch('')
+                        setShowDropdown(false)
+                      }}
+                      className={c.id === selected.id ? 'active' : ''}
+                    >
+                      <span>{c.name}</span>
+                      <small>{c.family} · {c.baseSpirit}</small>
+                    </button>
+                  ))}
+                  {filteredCocktails.length === 0 && (
+                    <div className="dropdown-no-results">No matches found</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="studio-cocktail-preview">
+            <img alt={selected.name} src={cocktailPhoto(selected)} />
+            <div>
+              <strong>{selected.name}</strong>
+              <span>{selected.family} · {selected.baseSpirit}</span>
+            </div>
+          </div>
+
+          <div className="failure-modes-section">
+            <label className="section-label">Select Failure Mode</label>
+            <div className="failure-modes-grid">
+              {Object.keys(troubleFixes).map((item) => {
+                const isActive = trouble === item
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`failure-mode-card ${isActive ? 'active' : ''}`}
+                    onClick={() => setTrouble(item)}
+                  >
+                    <strong>{item}</strong>
+                    <span>{getFailureDescription(item)}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
-        <div className="panel">
-          <h2>Save Fix Note</h2>
-          <p>Attach this diagnosis to the selected recipe so it is available next time.</p>
-          <button
-            onClick={() =>
-              updateStored((state) => ({
-                ...state,
-                notes: {
-                  ...state.notes,
-                  [selected.id]: `${state.notes[selected.id] || ''}\n${trouble}: ${troubleFixes[trouble][0]}`.trim(),
-                },
-              }))
+
+        <div className="panel studio-right-pane">
+          <div className="fixes-diagnostic-block">
+            <label className="section-label">Recommended Corrective Actions</label>
+            <div className="fixes-list">
+              {troubleFixes[trouble].map((fix) => {
+                const isChecked = appliedFixes.has(fix)
+                return (
+                  <label key={fix} className={`fix-checkbox-item ${isChecked ? 'applied' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => toggleFix(fix)}
+                    />
+                    <span>{fix}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="note-builder-block">
+            <label className="section-label">Customize Diagnosis Note</label>
+            <textarea
+              value={customNote}
+              onChange={(e) => setCustomNote(e.target.value)}
+              placeholder="Describe what went wrong and how you resolved it..."
+              rows={3}
+            />
+            <button className="save-diag-btn" onClick={handleSaveNote}>
+              <Save size={16} />
+              Save to Recipe Notes
+            </button>
+          </div>
+
+          {currentNotes && (
+            <div className="studio-saved-notes-block">
+              <label className="section-label">Existing Notes for {selected.name}</label>
+              <div className="existing-notes-content">
+                {currentNotes.split('\n').map((line, idx) => (
+                  <p key={idx}>{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function PracticeLabView({
+  cocktails,
+  selected,
+  state,
+  updateStored,
+}: {
+  cocktails: CatalogCocktail[]
+  selected: CatalogCocktail
+  state: StoredState
+  updateStored: (updater: (state: StoredState) => StoredState) => void
+}) {
+  const [cocktailSearch, setCocktailSearch] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const [focus, setFocus] = useState<PracticeFocus>('balance')
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerMode, setTimerMode] = useState<'countdown' | 'countup'>('countdown')
+  const [timerDuration, setTimerDuration] = useState(12)
+  const [timerMax, setTimerMax] = useState(12)
+
+  const defaultTechnique = useMemo<PracticeTechnique>(() => {
+    const method = (selected.method || '').toLowerCase()
+    if (method.includes('shake')) return 'shake'
+    if (method.includes('stir')) return 'stir'
+    if (method.includes('swizzle')) return 'swizzle'
+    if (method.includes('build')) return 'build'
+    return 'none'
+  }, [selected])
+
+  const [technique, setTechnique] = useState<PracticeTechnique>(defaultTechnique)
+
+  useEffect(() => {
+    setTechnique(defaultTechnique)
+  }, [defaultTechnique])
+
+  const getPresetDuration = (tech: PracticeTechnique) => {
+    if (tech === 'shake') return 12
+    if (tech === 'stir') return 30
+    if (tech === 'swizzle') return 20
+    return 0
+  }
+
+  useEffect(() => {
+    const dur = getPresetDuration(technique)
+    setTimerDuration(dur)
+    setTimerMax(dur || 1)
+    setTimerMode(dur > 0 ? 'countdown' : 'countup')
+    setTimerRunning(false)
+  }, [technique])
+
+  useEffect(() => {
+    let intervalId: any = null
+    if (timerRunning) {
+      intervalId = setInterval(() => {
+        setTimerDuration((prev) => {
+          if (timerMode === 'countdown') {
+            if (prev <= 1) {
+              setTimerRunning(false)
+              playBeep()
+              return 0
             }
-          >
-            Save to local notes
-          </button>
+            return prev - 1
+          } else {
+            return prev + 1
+          }
+        })
+      }, 1000)
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [timerRunning, timerMode])
+
+  const playBeep = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioCtx) return
+      const ctx = new AudioCtx()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(880, ctx.currentTime)
+      gain.gain.setValueAtTime(0.1, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+      osc.start()
+      osc.stop(ctx.currentTime + 0.3)
+    } catch (e) {
+      console.warn('AudioContext beep failed', e)
+    }
+  }
+
+  const [rating, setRating] = useState(3)
+  const [tastingNotes, setTastingNotes] = useState('')
+  const [toastMessage, setToastMessage] = useState('')
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    setChecklist({})
+  }, [selected])
+
+  const handleSaveLog = () => {
+    const elapsedSeconds = timerMode === 'countdown' ? (timerMax - timerDuration) : timerDuration
+    const newLog: PracticeLog = {
+      id: 'practice-' + Date.now(),
+      cocktailId: selected.id,
+      cocktailName: selected.name,
+      date: new Date().toISOString(),
+      focus,
+      technique,
+      durationSeconds: technique === 'build' || technique === 'none' ? 0 : elapsedSeconds,
+      notes: tastingNotes,
+      rating,
+    }
+
+    updateStored((s) => ({
+      ...s,
+      practiceLogs: [newLog, ...(s.practiceLogs || [])],
+    }))
+
+    setToastMessage('Practice session logged successfully!')
+    setTastingNotes('')
+    setRating(3)
+    setChecklist({})
+    setTimeout(() => setToastMessage(''), 3000)
+  }
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const filteredCocktails = useMemo(() => {
+    if (!cocktailSearch.trim()) return cocktails.slice(0, 8)
+    const clean = cocktailSearch.toLowerCase()
+    return cocktails
+      .filter((c) => c.name.toLowerCase().includes(clean) || c.family.toLowerCase().includes(clean))
+      .slice(0, 8)
+  }, [cocktails, cocktailSearch])
+
+  const selectedLogs = useMemo(() => {
+    return (state.practiceLogs || []).filter((log) => log.cocktailId === selected.id)
+  }, [state.practiceLogs, selected.id])
+
+  const focusGuidelines = {
+    balance: {
+      title: 'Balance Focus',
+      description: 'Train your palate to identify sugar, acid, spirit, and water harmony. Measure ingredients strictly using a jigger.',
+      tip: 'Tip: Dip a clean straw into the shaker/mixing glass before icing to taste the pre-dilution balance.',
+    },
+    dilution: {
+      title: 'Dilution Focus',
+      description: 'Dilution opens up high-proof esters and controls chill. Test the difference between 10s and 20s stirring.',
+      tip: 'Tip: Use large, solid cubes. Wet, melting ice adds unregulated water that makes drinks watery.',
+    },
+    speed: {
+      title: 'Speed Focus',
+      description: 'Build efficiency through mise en place. Place bottles, tools, and glassware in standardized positions.',
+      tip: 'Tip: Pour with your non-dominant hand holding the jigger, base spirit first to minimize bottle changes.',
+    },
+    aroma: {
+      title: 'Aroma Focus',
+      description: 'Over 80% of flavor is smell. Focus on oil expression, fresh garnishes, and glass rim wiping.',
+      tip: 'Tip: Pinch the peel skin-side-down over the drink. A mist should settle on the surface without oil droplets in the eye.',
+    },
+    garnish: {
+      title: 'Garnish Focus',
+      description: 'Visual appeal is the first sip. Practice clean channel cuts, rim notches, and matching skewered garnishes.',
+      tip: 'Tip: Garnish should touch the liquid slightly to release aromatics but not drown or get sticky.',
+    },
+  }
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60)
+    const s = secs % 60
+    return `${m}:${s < 10 ? '0' : ''}${s}`
+  }
+
+  return (
+    <div className="page view-page">
+      <ViewHeader eyebrow="Practice Lab" title="Refine technique & track structured tasting sessions" />
+
+      {toastMessage && (
+        <div className="diag-toast-alert success">
+          <Check size={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      <section className="split-grid practice-lab-grid">
+        <div className="panel studio-left-pane">
+          <div className="cocktail-swap-selector" ref={dropdownRef}>
+            <label className="section-label">Select Cocktail to Practice</label>
+            <div className="selector-input-wrap">
+              <input
+                type="text"
+                placeholder={`Currently: ${selected.name} (Type to change...)`}
+                value={cocktailSearch}
+                onChange={(e) => {
+                  setCocktailSearch(e.target.value)
+                  setShowDropdown(true)
+                }}
+                onFocus={() => setShowDropdown(true)}
+              />
+              {showDropdown && (
+                <div className="selector-dropdown">
+                  {filteredCocktails.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        updateStored((s) => ({ ...s, selectedId: c.id }))
+                        setCocktailSearch('')
+                        setShowDropdown(false)
+                      }}
+                      className={c.id === selected.id ? 'active' : ''}
+                    >
+                      <span>{c.name}</span>
+                      <small>{c.family} · {c.baseSpirit}</small>
+                    </button>
+                  ))}
+                  {filteredCocktails.length === 0 && (
+                    <div className="dropdown-no-results">No matches found</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="studio-cocktail-preview">
+            <img alt={selected.name} src={cocktailPhoto(selected)} />
+            <div>
+              <strong>{selected.name}</strong>
+              <span>{selected.family} · {selected.baseSpirit}</span>
+            </div>
+          </div>
+
+          <div className="practice-focus-section">
+            <label className="section-label">Choose Practice Focus</label>
+            <div className="focus-cards-grid">
+              {(['balance', 'dilution', 'speed', 'aroma', 'garnish'] as PracticeFocus[]).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`focus-card ${focus === f ? 'active' : ''}`}
+                  onClick={() => setFocus(f)}
+                >
+                  <strong>{titleize(f)}</strong>
+                </button>
+              ))}
+            </div>
+            <div className="focus-guideline-box">
+              <h3>{focusGuidelines[focus].title}</h3>
+              <p>{focusGuidelines[focus].description}</p>
+              <small>{focusGuidelines[focus].tip}</small>
+            </div>
+          </div>
+
+          <div className="build-coach-section">
+            <label className="section-label">Build Coach Checklist</label>
+            <div className="coach-checklist">
+              <label className={`checklist-item ${checklist.glass ? 'checked' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={checklist.glass || false}
+                  onChange={() => setChecklist((prev) => ({ ...prev, glass: !prev.glass }))}
+                />
+                <span>Prep Glassware: <strong>{selected.glassware}</strong> with <strong>{selected.ice || 'no ice'}</strong></span>
+              </label>
+              <label className={`checklist-item ${checklist.mise ? 'checked' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={checklist.mise || false}
+                  onChange={() => setChecklist((prev) => ({ ...prev, mise: !prev.mise }))}
+                />
+                <span>Mise en Place: Gather {selected.ingredients.map(i => titleize(i.name)).join(', ')}</span>
+              </label>
+              <label className={`checklist-item ${checklist.measure ? 'checked' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={checklist.measure || false}
+                  onChange={() => setChecklist((prev) => ({ ...prev, measure: !prev.measure }))}
+                />
+                <span>Measure & Combine: Pour modifiers first, then spirits. <em>Jigger strictly!</em></span>
+              </label>
+              <label className={`checklist-item ${checklist.technique ? 'checked' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={checklist.technique || false}
+                  onChange={() => setChecklist((prev) => ({ ...prev, technique: !prev.technique }))}
+                />
+                <span>Execute Technique: <strong>{titleize(selected.method || 'build')}</strong> (Run timer on the right)</span>
+              </label>
+              <label className={`checklist-item ${checklist.garnish ? 'checked' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={checklist.garnish || false}
+                  onChange={() => setChecklist((prev) => ({ ...prev, garnish: !prev.garnish }))}
+                />
+                <span>Finish & Garnish: Express & set <strong>{selected.garnish || 'no garnish'}</strong></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="panel studio-right-pane">
+          <div className="technique-timer-section">
+            <label className="section-label">Technique Timer</label>
+            <div className="technique-tabs">
+              {(['shake', 'stir', 'swizzle', 'build'] as PracticeTechnique[]).map((tech) => (
+                <button
+                  key={tech}
+                  className={`tech-tab ${technique === tech ? 'active' : ''}`}
+                  onClick={() => setTechnique(tech)}
+                >
+                  {titleize(tech)}
+                </button>
+              ))}
+            </div>
+
+            <div className="timer-display-card">
+              <div className="timer-dial">
+                <svg className="timer-ring" width="120" height="120">
+                  <circle
+                    className="timer-ring-bg"
+                    stroke="rgba(255,255,255,0.03)"
+                    strokeWidth="6"
+                    fill="transparent"
+                    r="52"
+                    cx="60"
+                    cy="60"
+                  />
+                  <circle
+                    className="timer-ring-bar"
+                    stroke="var(--accent)"
+                    strokeWidth="6"
+                    fill="transparent"
+                    r="52"
+                    cx="60"
+                    cy="60"
+                    strokeDasharray={2 * Math.PI * 52}
+                    strokeDashoffset={
+                      timerMode === 'countdown' && timerMax > 0
+                        ? (2 * Math.PI * 52) * (1 - timerDuration / timerMax)
+                        : 0
+                    }
+                  />
+                </svg>
+                <div className="timer-text">
+                  <strong>{formatTime(timerDuration)}</strong>
+                  <span>{timerMode === 'countdown' ? 'Remaining' : 'Elapsed'}</span>
+                </div>
+              </div>
+
+              <div className="timer-controls">
+                {timerMode === 'countdown' && (
+                  <button
+                    className="timer-offset-btn"
+                    onClick={() => {
+                      setTimerDuration((prev) => prev + 5)
+                      setTimerMax((prev) => prev + 5)
+                    }}
+                  >
+                    +5s
+                  </button>
+                )}
+                <button
+                  className={`timer-play-btn ${timerRunning ? 'running' : ''}`}
+                  onClick={() => setTimerRunning(!timerRunning)}
+                >
+                  {timerRunning ? 'Pause' : 'Start'}
+                </button>
+                {timerMode === 'countdown' && (
+                  <button
+                    className="timer-offset-btn"
+                    disabled={timerDuration <= 5}
+                    onClick={() => {
+                      setTimerDuration((prev) => Math.max(0, prev - 5))
+                      setTimerMax((prev) => Math.max(5, prev - 5))
+                    }}
+                  >
+                    -5s
+                  </button>
+                )}
+                <button
+                  className="timer-reset-btn"
+                  onClick={() => {
+                    setTimerRunning(false)
+                    setTimerDuration(getPresetDuration(technique))
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="tasting-logger-section">
+            <label className="section-label">Log Tasting & Session Results</label>
+            <div className="rating-selector-block">
+              <span>Your Rating:</span>
+              <div className="stars-interactive">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className="star-btn"
+                    onClick={() => setRating(star)}
+                  >
+                    <Star
+                      size={24}
+                      fill={star <= rating ? 'var(--accent)' : 'none'}
+                      stroke={star <= rating ? 'var(--accent)' : 'var(--muted)'}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <textarea
+              className="tasting-notes-input"
+              placeholder="Describe results (e.g. aroma, texture, balance, dilution levels)..."
+              value={tastingNotes}
+              onChange={(e) => setTastingNotes(e.target.value)}
+              rows={3}
+            />
+
+            <button
+              className="save-log-btn"
+              onClick={handleSaveLog}
+              disabled={!tastingNotes.trim()}
+            >
+              <Save size={16} />
+              Save Tasting Session
+            </button>
+          </div>
+
+          <div className="practice-history-section">
+            <label className="section-label">Practice Logs for {selected.name}</label>
+            <div className="logs-timeline">
+              {selectedLogs.map((log) => (
+                <div key={log.id} className="log-timeline-card">
+                  <div className="log-header">
+                    <span className="log-focus-tag">{log.focus}</span>
+                    <span className="log-date">{new Date(log.date).toLocaleDateString()}</span>
+                  </div>
+                  <div className="log-meta">
+                    <span>Tech: <strong>{log.technique}</strong></span>
+                    {log.durationSeconds > 0 && (
+                      <span>Time: <strong>{log.durationSeconds}s</strong></span>
+                    )}
+                    <span className="log-rating">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <Star
+                          key={idx}
+                          size={11}
+                          fill={idx < log.rating ? 'var(--accent)' : 'none'}
+                          stroke={idx < log.rating ? 'var(--accent)' : 'var(--muted)'}
+                        />
+                      ))}
+                    </span>
+                  </div>
+                  <p className="log-notes">{log.notes}</p>
+                </div>
+              ))}
+              {selectedLogs.length === 0 && (
+                <div className="logs-empty">No practice sessions logged for {selected.name} yet. Make a batch and log!</div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -2576,13 +3409,16 @@ function CocktailCard({
   cocktail,
   coverage,
   onOpen,
+  query,
 }: {
   action?: ReactNode
   cocktail: CatalogCocktail
   coverage?: IngredientCoverage
   onOpen: (cocktail: CatalogCocktail) => void
+  query?: string
 }) {
   const match = coverage ?? { score: 100, missing: [], substitutes: [], lowStock: [], emptyStock: [] }
+  const matchReason = query ? calculateRelevanceReason(cocktail, query) : null
   return (
     <article className="result-card">
       <button className="result-main" onClick={() => onOpen(cocktail)}>
@@ -2595,6 +3431,7 @@ function CocktailCard({
         />
         <span>{cocktail.family}</span>
         <strong>{cocktail.name}</strong>
+        {matchReason && <span className="match-reason-badge">{matchReason}</span>}
         <p>{cocktail.style || cocktail.whyItWorks}</p>
         <small>
           {cocktail.baseSpirit} · {cocktail.prepTime}
@@ -2802,8 +3639,177 @@ const substitutionGroups = [
   ['mezcal', 'tequila'],
   ['campari', 'aperol', 'red bitter aperitif'],
   ['simple syrup', 'demerara syrup', 'honey syrup', 'agave syrup'],
-  ['lemon juice', 'lime juice'],
 ]
+
+function findSubstitutes(ingredientName: string): string[] {
+  const name = ingredientName.toLowerCase()
+  for (const group of substitutionGroups) {
+    if (group.includes(name)) {
+      return group.filter((item) => item !== name)
+    }
+  }
+  return []
+}
+
+function matchesAllTokens(cocktail: CatalogCocktail, tokens: string[]): boolean {
+  const nameLower = cocktail.name.toLowerCase()
+  const familyLower = cocktail.family.toLowerCase()
+  const baseSpiritLower = cocktail.baseSpirit.toLowerCase()
+  const styleLower = (cocktail.style || '').toLowerCase()
+  const whyLower = (cocktail.whyItWorks || '').toLowerCase()
+  const historyLower = (cocktail.historyNotes || '').toLowerCase()
+
+  return tokens.every((token) => {
+    if (nameLower.includes(token)) return true
+    if (familyLower.includes(token)) return true
+    if (baseSpiritLower.includes(token)) return true
+    if (styleLower.includes(token)) return true
+    if (whyLower.includes(token)) return true
+    if (historyLower.includes(token)) return true
+    if (cocktail.aliases.some((alias) => alias.toLowerCase().includes(token))) return true
+    if (cocktail.ingredients.some((ing) => ing.name.toLowerCase().includes(token))) return true
+    return false
+  })
+}
+
+function calculateRelevanceScore(cocktail: CatalogCocktail, cleanQuery: string): number {
+  if (!cleanQuery) return 0
+  const tokens = cleanQuery.split(/\s+/).filter(Boolean)
+  if (!tokens.length) return 0
+
+  if (!matchesAllTokens(cocktail, tokens)) {
+    return -1
+  }
+
+  let score = 0
+  const nameLower = cocktail.name.toLowerCase()
+  const familyLower = cocktail.family.toLowerCase()
+  const baseSpiritLower = cocktail.baseSpirit.toLowerCase()
+  const styleLower = (cocktail.style || '').toLowerCase()
+
+  // 1. Exact or Substring name match
+  if (nameLower === cleanQuery) {
+    score += 300
+  } else if (nameLower.includes(cleanQuery)) {
+    score += 150
+  }
+
+  // 2. Individual token matches across fields
+  let matchedTokenCount = 0
+  for (const token of tokens) {
+    let matchedThisToken = false
+
+    if (nameLower.includes(token)) {
+      score += 50
+      matchedThisToken = true
+    }
+    for (const alias of cocktail.aliases) {
+      if (alias.toLowerCase().includes(token)) {
+        score += 40
+        matchedThisToken = true
+      }
+    }
+    if (baseSpiritLower.includes(token)) {
+      score += 30
+      matchedThisToken = true
+    }
+    if (familyLower.includes(token)) {
+      score += 25
+      matchedThisToken = true
+    }
+    if (styleLower.includes(token)) {
+      score += 15
+      matchedThisToken = true
+    }
+    for (const ing of cocktail.ingredients) {
+      if (ing.name.toLowerCase().includes(token)) {
+        score += 20
+        matchedThisToken = true
+      }
+    }
+    if ((cocktail.whyItWorks || '').toLowerCase().includes(token)) {
+      score += 5
+      matchedThisToken = true
+    }
+
+    if (matchedThisToken) {
+      matchedTokenCount++
+    }
+  }
+
+  score += matchedTokenCount * 10
+  return score
+}
+
+function calculateRelevanceReason(cocktail: CatalogCocktail, cleanQuery: string): string | null {
+  if (!cleanQuery) return null
+  const clean = cleanQuery.trim().toLowerCase()
+  const tokens = clean.split(/\s+/).filter(Boolean)
+  if (!tokens.length) return null
+
+  if (!matchesAllTokens(cocktail, tokens)) {
+    return null
+  }
+
+  const nameLower = cocktail.name.toLowerCase()
+  const familyLower = cocktail.family.toLowerCase()
+  const baseSpiritLower = cocktail.baseSpirit.toLowerCase()
+  const styleLower = (cocktail.style || '').toLowerCase()
+
+  if (nameLower === clean) {
+    return `Matches name: "${cocktail.name}"`
+  }
+  if (nameLower.includes(clean)) {
+    return `Name contains: "${clean}"`
+  }
+
+  for (const alias of cocktail.aliases) {
+    if (alias.toLowerCase() === clean) {
+      return `Matches alias: "${alias}"`
+    }
+  }
+
+  if (baseSpiritLower === clean) {
+    return `Matches spirit base: "${cocktail.baseSpirit}"`
+  }
+  if (familyLower === clean) {
+    return `Matches family: "${cocktail.family}"`
+  }
+
+  for (const ing of cocktail.ingredients) {
+    if (ing.name.toLowerCase() === clean) {
+      return `Matches ingredient: "${ing.name}"`
+    }
+  }
+
+  for (const ing of cocktail.ingredients) {
+    if (ing.name.toLowerCase().includes(clean)) {
+      return `Ingredient matches: "${ing.name}"`
+    }
+  }
+
+  const matches: string[] = []
+  for (const token of tokens) {
+    if (nameLower.includes(token)) {
+      matches.push(`name ("${token}")`)
+    } else if (baseSpiritLower.includes(token)) {
+      matches.push(`spirit ("${cocktail.baseSpirit}")`)
+    } else if (familyLower.includes(token)) {
+      matches.push(`family ("${cocktail.family}")`)
+    } else if (cocktail.ingredients.some((ing) => ing.name.toLowerCase().includes(token))) {
+      const ingMatch = cocktail.ingredients.find((ing) => ing.name.toLowerCase().includes(token))
+      matches.push(`ingredient ("${ingMatch?.name}")`)
+    } else if (styleLower.includes(token)) {
+      matches.push(`style ("${cocktail.style}")`)
+    }
+  }
+
+  if (matches.length > 0) {
+    return `Matched via ` + matches.join(' + ')
+  }
+
+  return 'Matched search terms'
+}
 
 function filterCocktails(
   cocktails: CatalogCocktail[],
@@ -2815,14 +3821,29 @@ function filterCocktails(
 ) {
   const clean = query.trim().toLowerCase()
   const ranked = cocktails
-    .map((cocktail) => ({
-      cocktail,
-      coverage: coverageById.get(cocktail.id) ?? fullIngredientCoverage,
-    }))
-    .filter(({ cocktail, coverage }) => {
+    .map((cocktail) => {
+      const coverage = coverageById.get(cocktail.id) ?? fullIngredientCoverage
+      let relevanceScore = 0
+      let isQueryMatch = true
+
+      if (clean && clean !== 'ready now' && clean !== 'low stock') {
+        relevanceScore = calculateRelevanceScore(cocktail, clean)
+        if (relevanceScore === -1) {
+          isQueryMatch = false
+        }
+      }
+
+      return {
+        cocktail,
+        coverage,
+        relevanceScore,
+        isQueryMatch,
+      }
+    })
+    .filter(({ cocktail, coverage, isQueryMatch }) => {
+      if (!isQueryMatch) return false
       if (clean === 'ready now' && coverage.missing.length > 0) return false
       if (clean === 'low stock' && coverage.lowStock.length === 0) return false
-      if (clean && clean !== 'ready now' && clean !== 'low stock' && !searchableText(cocktail).includes(clean)) return false
       if (filters.family && cocktail.family !== filters.family) return false
       if (filters.baseSpirit && titleize(cocktail.baseSpirit) !== filters.baseSpirit) return false
       if (filters.difficulty && titleize(cocktail.difficulty) !== filters.difficulty) return false
@@ -2834,7 +3855,17 @@ function filterCocktails(
       return true
     })
 
-  if (sort === 'makeable') {
+  if (sort === 'relevance') {
+    ranked.sort((a, b) => {
+      if (b.relevanceScore !== a.relevanceScore) {
+        return b.relevanceScore - a.relevanceScore
+      }
+      if (b.coverage.score !== a.coverage.score) {
+        return b.coverage.score - a.coverage.score
+      }
+      return a.cocktail.name.localeCompare(b.cocktail.name)
+    })
+  } else if (sort === 'makeable') {
     ranked.sort((a, b) => b.coverage.score - a.coverage.score || a.cocktail.name.localeCompare(b.cocktail.name))
   } else if (sort === 'saved') {
     ranked.sort((a, b) => Number(savedIds.includes(b.cocktail.id)) - Number(savedIds.includes(a.cocktail.id)))

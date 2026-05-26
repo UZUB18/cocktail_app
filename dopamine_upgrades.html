@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cocktail App Advanced Upgrades Roadmap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070605;
+      --panel: rgba(22, 19, 15, 0.65);
+      --panel-strong: rgba(30, 26, 20, 0.9);
+      --line: rgba(212, 139, 54, 0.12);
+      --text: #e2d3c0;
+      --muted: #a3927d;
+      --accent: #e5933a;
+      --accent-rgb: 229, 147, 58;
+      --green: #a3b84c;
+      --green-rgb: 163, 184, 76;
+      --radius: 16px;
+      --radius-sm: 8px;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --motion-fast: 150ms;
+      --motion: 300ms;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      background-image: radial-gradient(circle at 50% -20%, rgba(var(--accent-rgb), 0.08), transparent 800px);
+      padding: 60px 24px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 48px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+    }
+
+    header .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    header h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 800;
+      color: #e4c4a4;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 800px;
+      line-height: 1.5;
+    }
+
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+    }
+
+    /* Sidebar Menu */
+    .upgrade-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: sticky;
+      top: 40px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      color: var(--muted);
+      text-align: left;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 600;
+      transition: all var(--motion-fast) ease;
+    }
+
+    .nav-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .nav-btn.active {
+      color: var(--accent);
+      background: rgba(var(--accent-rgb), 0.08);
+      border-color: rgba(var(--accent-rgb), 0.25);
+    }
+
+    .nav-btn .num {
+      font-size: 12px;
+      opacity: 0.65;
+    }
+
+    /* Content Area */
+    .upgrade-view {
+      display: none;
+      flex-direction: column;
+      gap: 32px;
+      animation: viewFadeIn var(--motion) var(--ease-out) forwards;
+    }
+
+    .upgrade-view.active {
+      display: flex;
+    }
+
+    @keyframes viewFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 30px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .card h2 {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: #e4c4a4;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 14.5px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    /* Interactive Prototypes */
+    .prototype-container {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .prototype-label {
+      font-family: var(--font-heading);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Code Block Display */
+    .code-container {
+      margin-top: 24px;
+    }
+
+    .code-header {
+      background: #12100d;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-header span {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: monospace;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 0;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    pre {
+      background: #090807;
+      border: 1px solid var(--line);
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #dfcaa7;
+    }
+
+    /* UI components for dynamic prototypes */
+    /* Subst box */
+    .subst-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--motion-fast) ease;
+    }
+
+    .subst-row:hover {
+      border-color: rgba(var(--accent-rgb), 0.3);
+      background: rgba(var(--accent-rgb), 0.04);
+    }
+
+    .subst-badge {
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(var(--green-rgb), 0.1);
+      border: 1px solid rgba(var(--green-rgb), 0.2);
+    }
+
+    /* Radar Chart Preview */
+    .radar-svg {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .radar-point {
+      cursor: pointer;
+      transition: fill 0.2s ease;
+    }
+
+    .radar-point:hover {
+      fill: #ffaa44 !important;
+    }
+
+    /* Batcher widget */
+    .batch-slider-block {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .batch-slider-block input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .batch-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      text-align: center;
+    }
+
+    .batch-summary-item {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .batch-summary-item strong {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 20px;
+      color: var(--accent);
+    }
+
+    .batch-summary-item span {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* Voice mic widget */
+    .voice-status-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(var(--accent-rgb), 0.03);
+      border: 1px solid rgba(var(--accent-rgb), 0.15);
+    }
+
+    .mic-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .mic-indicator.listening {
+      background: #ff4444;
+      animation: pulseMic 1.2s infinite alternate;
+    }
+
+    @keyframes pulseMic {
+      0% { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.3); opacity: 1; }
+    }
+
+    /* Confetti Canvas */
+    #confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .diag-toast-alert {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--panel-strong);
+      border: 1px solid var(--green);
+      border-radius: var(--radius-sm);
+      color: var(--green);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      animation: toastFadeIn 0.3s forwards;
+    }
+
+    @keyframes toastFadeIn {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti"></canvas>
+
+  <div class="container">
+    <header>
+      <span class="eyebrow">Product Upgrade Roadmap</span>
+      <h1>Cocktail Colleague Upgrade Proposals</h1>
+      <p>Brainstormed high-fidelity UI/UX modules, smart algorithmic features, and satisfying micro-interactions to elevate the cocktail application's UX and dopamine response.</p>
+    </header>
+
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <nav class="upgrade-nav">
+        <button class="nav-btn active" onclick="switchView('view-subst', this)">
+          <span class="num">01 /</span> Substitutions
+        </button>
+        <button class="nav-btn" onclick="switchView('view-radar', this)">
+          <span class="num">02 /</span> Radar Chart
+        </button>
+        <button class="nav-btn" onclick="switchView('view-scale', this)">
+          <span class="num">03 /</span> Batch Scaling
+        </button>
+        <button class="nav-btn" onclick="switchView('view-voice', this)">
+          <span class="num">04 /</span> Voice Control
+        </button>
+        <button class="nav-btn" onclick="switchView('view-gamify', this)">
+          <span class="num">05 /</span> Dopamine UX
+        </button>
+      </nav>
+
+      <!-- VIEWS -->
+      <main class="content-panel">
+        
+        <!-- 01 / SUBSTITUTIONS -->
+        <div id="view-subst" class="upgrade-view active">
+          <div class="card">
+            <h2>Algorithmic Substitution Drawer</h2>
+            <p><strong>The Opportunity:</strong> If the user is missing a single bottle (e.g. Blanco Tequila), blocking them from making a recipe causes friction. Recommend matching alternative spirits based on flavor profiles with compatibility ratings.</p>
+            <p><strong>Interactive Demo:</strong> Tap a missing ingredient to view dynamic substitution recommendations based on flavor matching:</p>
+            
+            <div class="prototype-container">
+              <span class="prototype-label">Live Prototype</span>
+              
+              <div style="display:grid; gap:10px;">
+                <div class="subst-row" onclick="showSubst('Mezcal', '91%', 'Adds a smoky element but fits sour/sweet structure perfectly.')">
+                  <span>Blanco Tequila ➔ <strong>Mezcal</strong></span>
+                  <span class="subst-badge">91% MATCH</span>
+                </div>
+                <div class="subst-row" onclick="showSubst('Rye Whiskey', '85%', 'Increases spicy character, works well in high-density classics.')">
+                  <span>Bourbon ➔ <strong>Rye Whiskey</strong></span>
+                  <span class="subst-badge">85% MATCH</span>
+                </div>
+                <div class="subst-row" onclick="showSubst('Aperol', '78%', 'Softer, sweeter, and less bitter profile. Adjust sugar down.')">
+                  <span>Campari ➔ <strong>Aperol</strong></span>
+                  <span class="subst-badge">78% MATCH</span>
+                </div>
+              </div>
+              
+              <div id="subst-result-box" style="margin-top: 10px; display: none; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; border-left: 3px solid var(--accent);">
+                <strong id="subst-title" style="display:block; color:var(--accent); margin-bottom:4px;"></strong>
+                <span id="subst-desc" style="font-size: 13px; color: var(--text);"></span>
+              </div>
+            </div>
+
+            <div class="code-container">
+              <div class="code-header">
+                <span>Substitution logic snippet (TypeScript)</span>
+                <button class="copy-btn" onclick="copyCode('code-subst')">Copy code</button>
+              </div>
+              <pre id="code-subst">
+interface Substitute {
+  name: string;
+  compatibility: number; // 0.0 - 1.0
+  notes: string;
+}
+
+function getSubstitutes(missing: string): Substitute[] {
+  const dataset: Record<string, Substitute[]> = {
+    "blanco tequila": [
+      { name: "Mezcal", compatibility: 0.91, notes: "Adds smoky qualities." },
+      { name: "Sotol", compatibility: 0.82, notes: "Earthy and herbal." }
+    ],
+    "bourbon": [
+      { name: "Rye Whiskey", compatibility: 0.85, notes: "Spicier flavor profile." },
+      { name: "Cognac", compatibility: 0.80, notes: "Fruity and sweet profile." }
+    ]
+  };
+  return dataset[missing.toLowerCase()] || [];
+}</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 / RADAR CHART -->
+        <div id="view-radar" class="upgrade-view">
+          <div class="card">
+            <h2>Tasting Profile Radar Chart</h2>
+            <p><strong>The Opportunity:</strong> Reading a text list of flavor categories is dry. Replace it with an interactive SVG radar graph showing Sweetness, Acidity, Bitterness, Booziness, and Dilution balances at a single glance. Hovering points displays tasting notes.</p>
+            
+            <div class="prototype-container">
+              <span class="prototype-label">Live Interactive SVG Graph</span>
+              
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <svg class="radar-svg" viewBox="0 0 100 100">
+                  <!-- Radar Circle Background Grid -->
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+                  <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+                  <circle cx="50" cy="50" r="20" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+                  <circle cx="50" cy="50" r="10" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+                  
+                  <!-- Grid Axis -->
+                  <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                  <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                  
+                  <!-- Flavor Radar Polygon (Sweet, Sour, Bitter, Booze, Dilution) -->
+                  <polygon points="50,22 82,50 50,68 28,50 50,38" fill="rgba(229, 147, 58, 0.25)" stroke="var(--accent)" stroke-width="1.5"/>
+                  
+                  <!-- Axis Dots -->
+                  <circle cx="50" cy="22" r="2" fill="#fff" class="radar-point" onclick="alert('Sweetness: Medium-High')"/>
+                  <circle cx="82" cy="50" r="2" fill="#fff" class="radar-point" onclick="alert('Booziness: High')"/>
+                  <circle cx="50" cy="68" r="2" fill="#fff" class="radar-point" onclick="alert('Dilution: Medium')"/>
+                  <circle cx="28" cy="50" r="2" fill="#fff" class="radar-point" onclick="alert('Acidity: Low')"/>
+                </svg>
+                <div style="font-size:12.5px; color:var(--muted); text-align:center;">Click points to see balance metadata</div>
+              </div>
+            </div>
+
+            <div class="code-container">
+              <div class="code-header">
+                <span>SVG Polygon Points Generator (React)</span>
+                <button class="copy-btn" onclick="copyCode('code-radar')">Copy code</button>
+              </div>
+              <pre id="code-radar">
+function getRadarPoints(profile: FlavorProfile) {
+  const center = 50;
+  const scale = 40; // Max radius
+  // Convert low/med/high to coordinate values
+  const valMap = { low: 0.25, medium: 0.5, high: 0.85 };
+  
+  const sweetY = center - valMap[profile.sweetness] * scale;
+  const sourX = center - valMap[profile.acidity] * scale;
+  const bitterY = center + valMap[profile.bitterness] * scale;
+  const boozeX = center + valMap[profile.booziness] * scale;
+  
+  return `${center},${sweetY} ${boozeX},${center} ${center},${bitterY} ${sourX},${center}`;
+}</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 / BATCH SCALING -->
+        <div id="view-scale" class="upgrade-view">
+          <div class="card">
+            <h2>Dynamic Batch Scale Slider</h2>
+            <p><strong>The Opportunity:</strong> Cocktail books fail at party scaling. If you multiply a recipe by 12, simple arithmetic ruins dilution properties. Implement a smart scale converter with dilution warnings.</p>
+            
+            <div class="prototype-container">
+              <span class="prototype-label">Interactive Batcher Simulator</span>
+              
+              <div class="batch-slider-block">
+                <div style="display:flex; justify-content:space-between; font-family:var(--font-heading); font-size:17px;">
+                  <strong>Scaling Ratio</strong>
+                  <span id="batch-scale-val" style="color:var(--accent); font-weight:700;">1 Drink</span>
+                </div>
+                <input type="range" id="batch-slider" min="1" max="25" value="1" oninput="updateBatcher(this.value)">
+                
+                <div class="batch-summary">
+                  <div class="batch-summary-item">
+                    <strong id="batch-spirits">2.0 oz</strong>
+                    <span>Base Spirit</span>
+                  </div>
+                  <div class="batch-summary-item">
+                    <strong id="batch-modifiers">0.75 oz</strong>
+                    <span>Modifier</span>
+                  </div>
+                  <div class="batch-summary-item">
+                    <strong id="batch-water">0.5 oz</strong>
+                    <span>Dilution Water</span>
+                  </div>
+                </div>
+                
+                <div id="batch-warn" style="display:none; padding:10px; border-radius:6px; background:rgba(255,0,0,0.15); border:1px solid rgba(255,0,0,0.3); font-size:12.5px; color:#ff8888;">
+                  ⚠️ Large batch detected. Reduce added ice dilution by 15% when pre-batching in bottles.
+                </div>
+              </div>
+            </div>
+
+            <div class="code-container">
+              <div class="code-header">
+                <span>Batch Scaling Calculation logic</span>
+                <button class="copy-btn" onclick="copyCode('code-scale')">Copy code</button>
+              </div>
+              <pre id="code-scale">
+function calculateBatch(recipe: Recipe, servings: number) {
+  const dilutionModifier = servings > 10 ? 0.85 : 1.0;
+  return recipe.ingredients.map(ing => {
+    let amt = ing.amount * servings;
+    if (ing.name === "water" || ing.name === "ice") {
+      amt = amt * dilutionModifier; // scale dilution safely
+    }
+    return { ...ing, amount: amt };
+  });
+}</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- 04 / VOICE CONTROL -->
+        <div id="view-voice" class="upgrade-view">
+          <div class="card">
+            <h2>Hands-Free Kitchen Speech Controller</h2>
+            <p><strong>The Opportunity:</strong> Wet, sticky fingers on a mobile touchscreen is a bad UX. Implement the HTML5 SpeechRecognition API so the user can control steps hands-free by saying *"Next"* or *"Back"*.</p>
+            
+            <div class="prototype-container">
+              <span class="prototype-label">Voice Recognition Simulation</span>
+              
+              <div style="display:grid; gap:16px;">
+                <div class="voice-status-box">
+                  <div class="mic-indicator" id="mic-node"></div>
+                  <span id="voice-text">Microphone Offline</span>
+                </div>
+                <button class="btn" id="voice-toggle-btn" onclick="toggleVoice()">Turn On Hands-Free Mode</button>
+                <div style="font-size:12.5px; color:var(--muted);">Simulate saying: <b>"next"</b>, <b>"back"</b>, or <b>"ingredients"</b>. (Works out of the box in Chrome/Safari)</div>
+              </div>
+            </div>
+
+            <div class="code-container">
+              <div class="code-header">
+                <span>Web Speech API integration snippet</span>
+                <button class="copy-btn" onclick="copyCode('code-voice')">Copy code</button>
+              </div>
+              <pre id="code-voice">
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.onresult = (event) => {
+    const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+    if (transcript.includes('next')) {
+      goToNextStep();
+    } else if (transcript.includes('back')) {
+      goToPrevStep();
+    }
+  };
+  recognition.start();
+}</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- 05 / GAMIFY & DOPAMINE UX -->
+        <div id="view-gamify" class="upgrade-view">
+          <div class="card">
+            <h2>Level-Up & Completion Satisfiers</h2>
+            <p><strong>The Opportunity:</strong> Activating dopamine response loops. Adding XP points for inventory additions, leveling up titles, and rewarding recipe builds with particle fireworks and spatial audio cues converts a utility app into a habit-forming routine.</p>
+            
+            <div class="prototype-container" style="text-align:center;">
+              <span class="prototype-label" style="text-align:left; display:block;">Completion Trigger test</span>
+              
+              <div style="padding: 20px 0;">
+                <h3 style="font-family:var(--font-heading); font-size:20px; margin-bottom:12px;">Cocktail Made!</h3>
+                <button class="btn" onclick="triggerConfetti()">Trigger Dopamine Rush</button>
+              </div>
+            </div>
+
+            <div class="code-container">
+              <div class="code-header">
+                <span>Canvas Confetti / Particle engine utility</span>
+                <button class="copy-btn" onclick="copyCode('code-conf')">Copy code</button>
+              </div>
+              <pre id="code-conf">
+function triggerConfettiBurst() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  // Spawn 50 high-velocity color particles with random x/y directions
+  for (let i = 0; i < 50; i++) {
+    particles.push({
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      color: `hsl(${Math.random() * 360}, 80%, 60%)`,
+      speedX: Math.random() * 12 - 6,
+      speedY: Math.random() * -14 - 4
+    });
+  }
+}</pre>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="toast-bin"></div>
+
+  <script>
+    // Tab switching logic
+    function switchView(viewId, btn) {
+      document.querySelectorAll('.upgrade-view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Copy to clipboard helper
+    function copyCode(preId) {
+      const code = document.getElementById(preId).innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        showToast("Snippet copied to clipboard!");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'diag-toast-alert';
+      toast.innerHTML = `<span>✓ ${msg}</span>`;
+      document.getElementById('toast-bin').appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 3000);
+    }
+
+    // 01 / Substitutions details handler
+    function showSubst(name, match, desc) {
+      const box = document.getElementById('subst-result-box');
+      const title = document.getElementById('subst-title');
+      const text = document.getElementById('subst-desc');
+      
+      title.innerText = `${name} (${match} Match)`;
+      text.innerText = desc;
+      box.style.display = 'block';
+    }
+
+    // 03 / Batcher calculations
+    function updateBatcher(val) {
+      document.getElementById('batch-scale-val').innerText = val === '1' ? '1 Drink' : `${val} Drinks`;
+      
+      const multiplier = parseInt(val);
+      const spirits = (2.0 * multiplier).toFixed(1);
+      const modifiers = (0.75 * multiplier).toFixed(1);
+      const water = (0.5 * multiplier).toFixed(1);
+      
+      document.getElementById('batch-spirits').innerText = `${spirits} oz`;
+      document.getElementById('batch-modifiers').innerText = `${modifiers} oz`;
+      document.getElementById('batch-water').innerText = `${water} oz`;
+      
+      const warnBox = document.getElementById('batch-warn');
+      if (multiplier >= 10) {
+        warnBox.style.display = 'block';
+      } else {
+        warnBox.style.display = 'none';
+      }
+    }
+
+    // 04 / Speech Recognition Sim
+    let isListening = false;
+    let recognition = null;
+    function toggleVoice() {
+      const btn = document.getElementById('voice-toggle-btn');
+      const mic = document.getElementById('mic-node');
+      const txt = document.getElementById('voice-text');
+      
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Web Speech API is not supported in this browser. Please use Chrome or Safari.");
+        return;
+      }
+      
+      if (!isListening) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        
+        recognition.onstart = () => {
+          isListening = true;
+          btn.innerText = "Stop Hands-Free Mode";
+          mic.className = "mic-indicator listening";
+          txt.innerText = "Listening for 'Next' or 'Back'...";
+        };
+        
+        recognition.onresult = (event) => {
+          const result = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+          showToast(`Voice detected: "${result}"`);
+        };
+        
+        recognition.onerror = () => {
+          stopVoice();
+        };
+        
+        recognition.onend = () => {
+          stopVoice();
+        };
+        
+        recognition.start();
+      } else {
+        recognition.stop();
+      }
+    }
+
+    function stopVoice() {
+      isListening = false;
+      const btn = document.getElementById('voice-toggle-btn');
+      const mic = document.getElementById('mic-node');
+      const txt = document.getElementById('voice-text');
+      btn.innerText = "Turn On Hands-Free Mode";
+      mic.className = "mic-indicator";
+      txt.innerText = "Microphone Offline";
+    }
+
+    // Confetti physics canvas
+    const confCanvas = document.getElementById('confetti');
+    const cctx = confCanvas.getContext('2d');
+    let confParticles = [];
+
+    function resizeConf() {
+      confCanvas.width = window.innerWidth;
+      confCanvas.height = window.innerHeight;
+    }
+    resizeConf();
+    window.addEventListener('resize', resizeConf);
+
+    class Confetti {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 8 + 6;
+        this.speedX = Math.random() * 12 - 6;
+        this.speedY = Math.random() * -12 - 4;
+        this.color = `hsl(${Math.random() * 360}, 90%, 65%)`;
+        this.gravity = 0.3;
+        this.alpha = 1;
+        this.fade = Math.random() * 0.01 + 0.01;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.speedY += this.gravity;
+        this.alpha -= this.fade;
+      }
+      draw() {
+        cctx.save();
+        cctx.globalAlpha = Math.max(0, this.alpha);
+        cctx.fillStyle = this.color;
+        cctx.fillRect(this.x, this.y, this.size, this.size);
+        cctx.restore();
+      }
+    }
+
+    function triggerConfetti() {
+      const x = window.innerWidth / 2;
+      const y = window.innerHeight / 2;
+      for (let i = 0; i < 60; i++) {
+        confParticles.push(new Confetti(x, y));
+      }
+      showToast("Completed! +50 Bartender XP");
+    }
+
+    function animConf() {
+      cctx.clearRect(0, 0, confCanvas.width, confCanvas.height);
+      confParticles = confParticles.filter(p => p.alpha > 0);
+      confParticles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animConf);
+    }
+    animConf();
+  </script>
+</body>
+</html>
