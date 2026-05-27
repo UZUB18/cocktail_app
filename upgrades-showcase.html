@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cocktail Colleague — Upgrade Vision Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f; --bg2: #0f0f1a; --bg-card: #141428; --bg-code: #0a0a12;
+      --border: #2a2a4a; --text: #f0f0ff; --text-muted: #8888b0;
+      --cyan: #00f5d4; --magenta: #ff006e; --yellow: #ffbe0b;
+      --purple: #8338ec; --blue: #3a86ff; --orange: #fb5607;
+
+      --amber: #e5933a;
+      --amber-deep: #78350f;
+      --amber-muted: #a88c69;
+      --panel-glass: rgba(22, 19, 15, 0.62);
+      --line-warm: rgba(212, 139, 54, 0.09);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.7; overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999;
+    }
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 4px; z-index: 10000;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--yellow), var(--cyan));
+      background-size: 300% 100%; width: 0%;
+      animation: hueShift 3s linear infinite;
+      box-shadow: 0 0 20px var(--cyan), 0 0 40px var(--magenta);
+      transition: width 0.1s linear;
+    }
+    @keyframes hueShift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+    @keyframes gradientFlow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 10px var(--magenta); }
+      50% { box-shadow: 0 0 30px var(--magenta), 0 0 60px var(--orange); }
+    }
+    @keyframes blink {
+      0%, 100% { border-color: var(--cyan); }
+      50% { border-color: transparent; }
+    }
+    @keyframes sipGlow {
+      0%, 100% { opacity: 0.3; filter: blur(4px); }
+      50% { opacity: 0.6; filter: blur(8px); }
+    }
+    h1, h2, .pull-quote { font-family: 'Space Grotesk', sans-serif; }
+    h1 {
+      font-size: clamp(2.5rem, 7vw, 5.5rem); font-weight: 900;
+      line-height: 1.05; letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--cyan), var(--blue), var(--purple), var(--magenta), var(--yellow));
+      background-size: 200% 200%;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; animation: gradientFlow 4s ease-in-out infinite;
+      margin-bottom: 0.5rem;
+    }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    .hero {
+      text-align: center; padding: 5rem 2rem 3rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -30%; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,245,212,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .subtitle {
+      font-size: 1.1rem; color: var(--text-muted);
+      max-width: 600px; margin: 0.5rem auto 0;
+    }
+    .subtitle span { border-right: 2px solid var(--cyan); animation: blink 0.8s step-end infinite; }
+    .hero-stamp {
+      display: inline-block;
+      margin-top: 1rem; padding: 0.35rem 1rem;
+      border: 1px solid var(--magenta);
+      border-radius: 999px; font-size: 0.7rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--magenta);
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    .content { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+
+    .full-bleed {
+      width: 100vw; margin-left: calc(-50vw + 50%); padding: 3rem 2rem;
+      background: radial-gradient(ellipse at 30% 50%, rgba(255,0,110,0.06) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 50%, rgba(0,245,212,0.06) 0%, transparent 60%);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .full-bleed-inner { max-width: 900px; margin: 0 auto; }
+
+    .pull-quote {
+      font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 700; line-height: 1.3;
+      padding: 2rem 2rem 2rem 3rem; margin: 3rem 0;
+      border-left: 5px solid var(--magenta);
+      background: linear-gradient(135deg, rgba(255,0,110,0.05), transparent);
+      border-radius: 0 12px 12px 0;
+    }
+    .pull-quote strong { color: var(--cyan); }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .card:hover {
+      transform: scale(1.03) translateY(-6px);
+      box-shadow: 0 12px 40px rgba(0,245,212,0.12), 0 0 60px rgba(131,56,236,0.08);
+      border-color: var(--cyan);
+    }
+
+    .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* Section styling */
+    section { margin: 4rem 0; }
+    section h2 {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 900;
+      margin-bottom: 1.5rem; padding-bottom: 0.5rem;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta), transparent);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      border-bottom: 2px solid;
+      border-image: linear-gradient(90deg, var(--cyan), var(--magenta), transparent) 1;
+    }
+    section h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem; font-weight: 700; margin: 1.5rem 0 0.8rem;
+      color: var(--text);
+    }
+
+    /* Upgrade cards */
+    .upgrade-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 1rem; margin: 1.5rem 0;
+    }
+    @media (min-width: 768px) {
+      .upgrade-grid { grid-template-columns: 1fr 1fr; }
+      .upgrade-grid.wide { grid-template-columns: 1fr; }
+    }
+
+    .upgrade-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem;
+      position: relative; overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .upgrade-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0,245,212,0.08);
+      border-color: rgba(0,245,212,0.3);
+    }
+    .upgrade-item .tag {
+      display: inline-block; font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.15rem 0.5rem; border-radius: 4px; margin-bottom: 0.5rem;
+    }
+    .tag-ui { background: rgba(0,245,212,0.12); color: var(--cyan); }
+    .tag-ux { background: rgba(131,56,236,0.12); color: var(--purple); }
+    .tag-feature { background: rgba(255,0,110,0.12); color: var(--magenta); }
+    .tag-arch { background: rgba(255,190,11,0.12); color: var(--yellow); }
+
+    .upgrade-item h4 {
+      font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .upgrade-item p {
+      font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;
+    }
+    .upgrade-item .impact {
+      display: flex; gap: 0.5rem; margin-top: 0.6rem;
+      font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .impact-effort { color: var(--yellow); }
+    .impact-payoff { color: var(--cyan); }
+
+    /* Deep-dive box */
+    .deep-dive {
+      border-left: 4px solid var(--magenta);
+      background: linear-gradient(135deg, rgba(255,0,110,0.04), transparent);
+      padding: 1.2rem 1.5rem; border-radius: 0 10px 10px 0;
+      margin: 1.5rem 0;
+    }
+    .deep-dive h4 { color: var(--magenta); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; font-family: 'Space Grotesk', sans-serif; }
+    .deep-dive p, .deep-dive li { font-size: 0.85rem; color: var(--text-muted); }
+    .deep-dive ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+    .deep-dive li { margin-bottom: 0.2rem; }
+
+    /* Takeaway */
+    .takeaway {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      margin: 0.8rem 0; padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      background: rgba(0,245,212,0.04);
+      font-size: 0.85rem; color: var(--text);
+    }
+    .takeaway::before { content: '⭐'; font-size: 0.8rem; }
+
+    /* KPI row */
+    .kpi-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem; margin: 2rem 0;
+    }
+    .kpi {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.2rem 1rem; text-align: center;
+      position: relative; overflow: hidden; transition: all 0.3s ease;
+    }
+    .kpi::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    }
+    .kpi:hover { transform: scale(1.05) translateY(-4px); border-color: var(--cyan); box-shadow: 0 0 30px rgba(0,245,212,0.15); }
+    .kpi .value {
+      font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .kpi .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.3rem; }
+
+    /* Comparison cards */
+    .comp-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1rem; margin: 1.5rem 0;
+    }
+    @media (max-width: 640px) { .comp-row { grid-template-columns: 1fr; } }
+    .comp-card {
+      border-radius: 12px; padding: 1.2rem;
+    }
+    .comp-current {
+      background: #0f0d0a; border: 1px solid rgba(229,147,58,0.15);
+    }
+    .comp-current h4 { color: var(--amber); font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .comp-current p { color: var(--amber-muted); font-size: 0.85rem; }
+    .comp-upgrade {
+      background: var(--bg-card); border: 1px solid var(--cyan);
+    }
+    .comp-upgrade h4 { color: var(--cyan); font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .comp-upgrade p { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* Mockup pills */
+    .mockup-code {
+      background: #0a0a12; border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0;
+      font-size: 0.8rem; color: var(--text-muted); overflow-x: auto;
+    }
+    .mockup-code .cyan { color: var(--cyan); }
+    .mockup-code .magenta { color: var(--magenta); }
+    .mockup-code .yellow { color: var(--yellow); }
+    .mockup-code .purple { color: var(--purple); }
+    .mockup-code .dim { color: #555; }
+
+    /* Verdict */
+    .verdict {
+      background: linear-gradient(135deg, rgba(0,245,212,0.05), rgba(255,0,110,0.05), rgba(131,56,236,0.05));
+      border-radius: 16px; padding: 2.5rem 2rem; text-align: center;
+      position: relative; background-clip: padding-box; margin: 3rem 0;
+    }
+    .verdict::before {
+      content: ''; position: absolute; inset: -2px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--purple), var(--cyan));
+      background-size: 300% 300%; animation: gradientFlow 4s ease-in-out infinite;
+      z-index: -1; padding: 2px;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+    }
+    .verdict h3 { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; color: var(--text); margin-bottom: 0.5rem; }
+    .verdict p { color: var(--text-muted); max-width: 600px; margin: 0 auto; font-size: 0.9rem; }
+
+    /* Orange glow accent for current-theme references */
+    .current-theme-tag {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.65rem; color: var(--amber); background: rgba(229,147,58,0.08);
+      padding: 0.2rem 0.6rem; border-radius: 4px;
+    }
+
+    footer {
+      text-align: center; padding: 3rem 2rem;
+      color: var(--text-muted); font-size: 0.75rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="progress-bar"></div>
+
+  <header class="hero">
+    <h1>Cocktail Colleague</h1>
+    <p class="subtitle">Upgrade Vision Board <span>|</span></p>
+    <span class="hero-stamp">From Speakeasy to Supernova</span>
+  </header>
+
+  <div class="content">
+
+    <!-- STATUS QUO SNAPSHOT -->
+    <section class="fade-in">
+      <h2>01 &nbsp;The Starting Point</h2>
+      <p style="color:var(--text-muted);margin-bottom:1rem;">
+        The app today is a premium local-first cocktail companion — React 19 + TypeScript + Vite, 
+        localStorage persistence, 50+ catalog specs, and a warm amber <span class="current-theme-tag">✦ speakeasy theme</span>. 
+        Beautiful in its category but running a <strong>single 4,700-line CSS file</strong>, hash-routing via 
+        <code style="color:var(--cyan);font-size:0.8rem;">window.location.hash</code>, and all views in one 
+        <code style="color:var(--cyan);font-size:0.8rem;">App.tsx</code>.
+      </p>
+
+      <div class="kpi-row">
+        <div class="kpi"><div class="value">10</div><div class="label">View Modules</div></div>
+        <div class="kpi"><div class="value">4,371</div><div class="label">Lines in App.tsx</div></div>
+        <div class="kpi"><div class="value">4,744</div><div class="label">Lines in App.css</div></div>
+        <div class="kpi"><div class="value">90+</div><div class="label">Catalog Cocktails</div></div>
+      </div>
+
+      <div class="deep-dive">
+        <h4>Current Architecture at a Glance</h4>
+        <ul>
+          <li><strong>Routing</strong> — Manual hash-based (<code>window.location.hash</code>). No React Router. Views toggled with <code>activeView</code> state + conditional rendering.</li>
+          <li><strong>State</strong> — Single <code>useState</code> for <code>StoredState</code>. Every view gets props drilled through the tree. No context, no store.</li>
+          <li><strong>Styling</strong> — One giant <code>App.css</code> (4,744 lines). No CSS modules, no CSS-in-JS, no Tailwind.</li>
+          <li><strong>Images</strong> — Dynamic SVG fallbacks for cocktails without photos. Generated per-cocktail via hashseed.</li>
+          <li><strong>Code splitting</strong> — None. All views load in one bundle despite being toggled.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FULL BLEED: why upgrade -->
+    <div class="full-bleed fade-in">
+      <div class="full-bleed-inner">
+        <div class="pull-quote" style="margin:0;border-left-color:var(--cyan);">
+          The app's bones are <strong>excellent</strong> — local-first, private, zero-server, deep cocktail knowledge. 
+          The upgrades aren't about fixing broken things. They're about <strong style="color:var(--magenta);">unlocking what's already there</strong> with better architecture, richer interactions, and design that leaves an impression.
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORY 1: ANIMATION & MICRO-INTERACTIONS -->
+    <section class="fade-in">
+      <h2>02 &nbsp;Animation &amp; Micro-Interactions</h2>
+      <p style="color:var(--text-muted);margin-bottom:1rem;">
+        The current app is static — panels appear, content snaps into place. Adding motion turns browsing into a 
+        tactile experience, which matters enormously for a <strong>cocktail app</strong> (a category where sensory 
+        expectations are high).
+      </p>
+
+      <div class="upgrade-grid">
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ui">UI</span>
+          <h4>Spring-Powered Page Transitions</h4>
+          <p>Swap the instant view toggle for an exit/enter animation using <code>framer-motion</code> or 
+          native View Transitions API. Each view slides/fades in with a cubic-bezier overshoot.</p>
+          <div class="impact"><span class="impact-effort">⚡ Effort: Medium</span><span class="impact-payoff">🎯 Payoff: High</span></div>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ui">UI</span>
+          <h4>Staggered Ingredient Reveal</h4>
+          <p>When opening a recipe, ingredients appear one-by-one with a 50ms stagger. Creates a "mise en place" 
+          cadence — each component gets its moment before the build.</p>
+          <div class="impact"><span class="impact-effort">⚡ Effort: Low</span><span class="impact-payoff">🎯 Payoff: Medium</span></div>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ui">UI</span>
+          <h4>Pour Animation on Method Steps</h4>
+          <p>As the user reads through method steps, a subtle liquid-level animation in a glass SVG 
+          tracks progress. Step 1: empty → Step 3: half → Step 6: full + garnish drop.</p>
+          <div class="impact"><span class="impact-effort">⚡ Effort: High</span><span class="impact-payoff">🎯 Payoff: Very High</span></div>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Haptic-Feeling Button Presses</h4>
+          <p>Buttons use spring easing with a subtle scale(0.96) on press and scale(1.04) on release. 
+          Every interaction feels mechanical, not flat — like flipping a switch.</p>
+          <div class="impact"><span class="impact-effort">⚡ Effort: Low</span><span class="impact-payoff">🎯 Payoff: Medium</span></div>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ui">UI</span>
+          <h4>Shimmer Skeleton Loading</h4>
+          <p>For the catalog grid and practice lab, show animated skeleton cards with a cyan-gradient shimmer 
+          while content loads. Currently the app shows nothing during state transitions.</p>
+          <div class="impact"><span class="impact-effort">⚡ Effort: Low</span><span class="impact-payoff">🎯 Payoff: High</span></div>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Ambient Interface Sounds (Optional)</h4>
+          <p>Subtle Web Audio clicks for saves, a glass-clink for opening a recipe, a pour sound for scaling servings. 
+          Make it optional, tasteful, and rare. Uses the existing AudioContext setup.</p>
+          <div class="impact"><span class="impact-effort">⚡ Effort: Medium</span><span class="impact-payoff">🎯 Payoff: Medium</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY 2: VISUAL DESIGN DIRECTION -->
+    <section class="fade-in">
+      <h2>03 &nbsp;Visual Design Evolution</h2>
+      <p style="color:var(--text-muted);margin-bottom:1rem;">
+        The current warm-amber speakeasy theme is polished. These directions explore <strong>what comes next</strong> — 
+        not replacing it, but offering alternatives for different moods or user profiles.
+      </p>
+
+      <div class="comp-row">
+        <div class="comp-card comp-current fade-in">
+          <h4>✦ Current: The Speakeasy</h4>
+          <p>Amber accents, Georgia serif headings, warm brown backgrounds, gold glows. Premium, quiet, 
+          traditional — like a leather-bound cocktail book in a dim room.</p>
+          <div class="mockup-code" style="margin-top:0.5rem;">
+            --bg: <span class="dim">#070605</span><br>
+            --accent: <span class="yellow">#e5933a</span><br>
+            --heading: <span class="yellow">serif</span> (Georgia)<br>
+            --radius: <span class="dim">12px</span> · glassmorphism · <span class="dim">blur(20px)</span>
+          </div>
+        </div>
+        <div class="comp-card comp-upgrade fade-in">
+          <h4>🔥 Direction A: Midnight Bar</h4>
+          <p>Deepen the blacks, swap amber for neon cyan-magenta collision. Bold, contemporary, digital-native. 
+          Cocktail photos get treated as full-bleed hero images. Animated gradients on glass shapes.</p>
+          <div class="mockup-code" style="margin-top:0.5rem;">
+            --bg: <span class="cyan">#050508</span><br>
+            --accent: <span class="cyan">#00f5d4</span><br>
+            --heading: <span class="magenta">Space Grotesk</span> w/ gradient<br>
+            --glow: <span class="cyan">box-shadow</span> · <span class="magenta">neon</span> · <span class="yellow">pulse</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="upgrade-grid" style="margin-top:1rem;">
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ui">UI</span>
+          <h4>Direction B: The Paper Menu</h4>
+          <p>Inverted — off-white background (#f5f2ed), dark text, lots of serif typography (Playfair Display + 
+          Inter). Feels like a printed cocktail menu from a heritage bar. Great for readers, recipe printers, 
+          and the "cookbook" crowd.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ui">UI</span>
+          <h4>Direction C: Seasonal Palettes</h4>
+          <p>Theme shifts by season: warm rust/gold for fall, cool mint/ice for winter, bright citrus for summer, 
+          sakura/pink for spring. One CSS custom property swap. User picks or auto by month.</p>
+        </div>
+      </div>
+
+      <div class="deep-dive">
+        <h4>Dark/Light Mode Done Right</h4>
+        <p>The app is designed for dark-mode-first cocktail browsing — that's the right call. But a <strong>light mode</strong> 
+        that matches the Paper Menu direction would unlock daytime use: reading recipes in bright kitchens, 
+        printing shopping lists, showing specs to guests without the glare. Add a 
+        <code style="color:var(--cyan);">prefers-color-scheme</code> media query + manual toggle.</p>
+      </div>
+    </section>
+
+    <!-- FULL BLEED: data viz -->
+    <div class="full-bleed fade-in">
+      <div class="full-bleed-inner">
+        <div class="pull-quote" style="margin:0;border-left-color:var(--purple);">
+          The app already has <strong>flavor profiles, ingredient coverage scores, and practice logs</strong>. 
+          The data is there — what's missing is <strong style="color:var(--cyan);">the visual layer</strong> that turns 
+          numbers into insight at a glance.
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORY 3: DATA VISUALIZATION -->
+    <section class="fade-in">
+      <h2>04 &nbsp;Data Visualization &amp; Analytics</h2>
+
+      <div class="upgrade-grid">
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ui">UI</span>
+          <h4>Flavor Radar Chart</h4>
+          <p>Replace the current dot-meters with an interactive Chart.js radar. Sweetness, acidity, bitterness, 
+          booziness plotted as a pentagon overlay. Hover to see numeric values. Compare two cocktails side-by-side.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Ingredient Coverage Heatmap</h4>
+          <p>Visual grid showing your inventory vs. all catalog recipes. Green = makeable, yellow = missing 1, 
+          red = missing 2+. Sort by coverage score. Instant "what can I make tonight?" answer.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Practice Skill Progression Graph</h4>
+          <p>The practice lab logs technique + rating + duration. Plot this as a line chart over time — 
+          see your shake technique improving, dilution scores rising. Gamification via visual progress.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Shelf Life Dashboard</h4>
+          <p>For open bottles and homemade syrups, track when they were opened. Show expiry warnings, 
+          "use by" badges, and a timeline of what's about to go bad. Reduces waste, improves drink quality.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY 4: FRONTEND ARCHITECTURE -->
+    <section class="fade-in">
+      <h2>05 &nbsp;Frontend Architecture</h2>
+      <p style="color:var(--text-muted);margin-bottom:1rem;">
+        These aren't user-facing, but they enable everything else. The current monolith works for a single-user 
+        local app, but it's at the limit of maintainability.
+      </p>
+
+      <div class="upgrade-grid wide">
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-arch">ARCH</span>
+          <h4>React Router v7 + Code Splitting</h4>
+          <p>Replace <code>window.location.hash</code> with React Router. Each view becomes a lazy-loaded 
+          route via <code>React.lazy()</code> + <code>Suspense</code>. The initial bundle drops from ~160KB to 
+          ~40KB. Deep-linking works natively. Back/forward navigation without hacks.</p>
+          <div class="mockup-code">
+            <span class="dim">// Before</span><br>
+            <span class="cyan">const</span> activeView = <span class="yellow">useState</span><span class="dim">&lt;View&gt;</span>(initialView)<br>
+            {activeView === <span class="magenta">'Recipes'</span> && <span class="yellow">&lt;RecipeDetail</span> <span class="dim">/&gt;</span>}<br><br>
+            <span class="dim">// After</span><br>
+            <span class="cyan">const</span> RecipeDetail = <span class="yellow">React.lazy</span>(<span class="purple">()</span> =&gt; <span class="cyan">import</span>(<span class="magenta">'./views/RecipeDetail'</span>))<br>
+            <span class="yellow">&lt;Route</span> <span class="cyan">path=</span><span class="magenta">"/recipe/:id"</span> <span class="cyan">element=</span>{<span class="yellow">&lt;RecipeDetail</span> <span class="dim">/&gt;</span>}<span class="yellow">/&gt;</span>
+          </div>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-arch">ARCH</span>
+          <h4>State Management: Zustand</h4>
+          <p>Extract <code>StoredState</code> into a Zustand store. Eliminates prop drilling through 10+ view 
+          components. Built-in persistence middleware replaces manual <code>localStorage</code> calls. 
+          Subscribe to slices instead of re-rendering the entire tree on every change.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-arch">ARCH</span>
+          <h4>CSS Architecture: Modules or Tailwind</h4>
+          <p>4,744 lines in one file is the limit. Split into per-component CSS modules, or adopt Tailwind v4 
+          for utility-first styling. Either approach eliminates selector collisions, makes dead code 
+          detectable, and allows themed component libraries.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-arch">ARCH</span>
+          <h4>Route-Based View Splitting</h4>
+          <p>Each of the 10 views (<code>HomeView</code>, <code>SearchView</code>, <code>RecipeDetail</code>, etc.) 
+          currently lives in <code>App.tsx</code>. Extract into separate files under <code>src/views/</code>. 
+          Shared components (sidebar, topbar, ingredient row, flavor meters) into <code>src/components/</code>.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-arch">ARCH</span>
+          <h4>PWA — Installable &amp; Offline</h4>
+          <p>Add a service worker + manifest. The app is already 100% offline-capable (localStorage + no server 
+          calls). Making it a PWA means users install it on their phone home screen, get a splash screen, 
+          and never see a browser chrome. This is a 20-minute change for a massive UX win.</p>
+          <div class="impact"><span class="impact-effort">⚡ Effort: Low</span><span class="impact-payoff">🎯 Payoff: Very High</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY 5: NEW FEATURES -->
+    <section class="fade-in">
+      <h2>06 &nbsp;New Features &amp; Capabilities</h2>
+
+      <div class="upgrade-grid">
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Cocktail Randomizer</h4>
+          <p>"Surprise Me" button that picks a random cocktail from what you can make with current inventory. 
+          Adjustable constraints: "something with rum" or "under 4 ingredients". Perfect for decision paralysis nights.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Voice-Through Method Mode</h4>
+          <p>A "voice mode" in Practice Lab that reads the method steps aloud (Web Speech API) with 
+          touch-forward progression. Hands-free cocktail making. Your phone becomes a bar assistant 
+          that doesn't need you to look at it.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Recipe Sharing via Encoded URL</h4>
+          <p>Generate a shareable URL that encodes the recipe spec (compressed, base64). Someone opens it, 
+          the app detects the payload and imports it. No server, no backend — just URLs as data carriers.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Smart Substitution Engine</h4>
+          <p>Currently substitutions are static text. Upgrade to a rule-based engine: "No Campari? Try Aperol 
+          (lighter) or Gran Classio (rounder)." Show ABV impact, sweetness delta, and color change preview.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Barcode Scanner for Inventory</h4>
+          <p>Scan a bottle's barcode via device camera (using <code>navigator.mediaDevices</code>) to auto-add 
+          it to inventory. Leverage open product databases. Transforms inventory from a typing chore into a 2-second action.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Nutrition &amp; ABV Calculator</h4>
+          <p>For each cocktail, show estimated ABV, calories, sugar content based on ingredient specs. 
+          Batch planner already scales ingredients — plugging ABV math on top is trivial.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Party Host View</h4>
+          <p>Full-screen mode showing the party menu with large text, countdown timers between rounds, 
+          "next pour" suggestions. Optimized for a bartender who doesn't want to squint at their phone 
+          while holding a shaker.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Technique Reference Library</h4>
+          <p>Embedded mini-guides for techniques: proper shaking mechanics, stirring technique, 
+          egg white dry shake, swizzling, muddling. Expandable accordion in Practice Lab. Video/animated diagram support.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Cocktail History Calendar</h4>
+          <p>Track what you've made and when. Calendar heatmap showing your cocktail activity. 
+          "You made 12 Negronis this month" — a mix of utility and gentle self-awareness.</p>
+        </div>
+
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">FEATURE</span>
+          <h4>Ingredient Expiry Tracking</h4>
+          <p>For perishables (citrus, syrups, vermouth, cream), set an expiry date on addition. 
+          The app warns when something is past its prime. Critical for anyone who's ever tasted week-old lime juice.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FULL BLEED: UX philosophy -->
+    <div class="full-bleed fade-in">
+      <div class="full-bleed-inner">
+        <div class="pull-quote" style="margin:0;border-left-color:var(--yellow);">
+          The best upgrade isn't a feature. It's a <strong>feeling</strong>. A cocktail app should make you 
+          <strong style="color:var(--yellow);">want to make drinks</strong> — not manage data. Every 
+          interaction should pull you toward the shaker.
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORY 6: UX POLISH -->
+    <section class="fade-in">
+      <h2>07 &nbsp;UX Polish — The Small Things</h2>
+      <p style="color:var(--text-muted);margin-bottom:1rem;">
+        These aren't features you market. They're the difference between an app you <em>use</em> and an app you 
+        <em>love</em>. Each one is low-to-medium effort, and together they compound into a fundamentally better 
+        experience.
+      </p>
+
+      <div class="upgrade-grid">
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Drag-and-Drop Ingredient Reordering</h4>
+          <p>In the Recipe Creator, let users drag ingredients to reorder them. Currently it's delete-and-retype. 
+          Native HTML5 drag + drop, ~50 lines of code.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Global Keyboard Shortcuts</h4>
+          <p><kbd style="background:var(--bg2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">⌘K</kbd> is there. Add: 
+          <kbd style="background:var(--bg2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">⌘N</kbd> new recipe, 
+          <kbd style="background:var(--bg2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">⌘S</kbd> save, 
+          <kbd style="background:var(--bg2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">⌘E</kbd> export, 
+          <kbd style="background:var(--bg2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">⌘I</kbd> inventory, 
+          <kbd style="background:var(--bg2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">⌘R</kbd> randomizer.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Undo/Redo for Recipe Editing</h4>
+          <p>History stack for custom recipe creation. Accidentally removed an ingredient? 
+          <kbd style="background:var(--bg2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">⌘Z</kbd> brings it back. 
+          Reduces the fear of experimentation.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Rich Command Palette</h4>
+          <p>The search bar already has <kbd>⌘K</kbd>. Upgrade it to a full command palette: 
+          open any view, search cocktails, toggle settings, run actions. Inspired by Linear/VS Code. 
+          Power users never touch the sidebar.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>First-Run Onboarding Flow</h4>
+          <p>When <code>localStorage</code> is empty (first visit), show a 3-step intro: add your first 
+          3 bottles, browse the catalog, save your first spec. Reduces the empty-state drop-off. 
+          The app currently drops users straight into demo data, which works but misses the "aha" moment.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Empty States with Purpose</h4>
+          <p>Every empty list (no search results, no inventory, no practice logs) shows a contextual 
+          illustration + CTA — not just "nothing here." Make the user feel guided, not abandoned.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Print-Ready Recipe Cards</h4>
+          <p>CSS <code>@media print</code> styles that render a recipe as a clean card: ingredients on the 
+          left, method on the right, QR-code link back to the app. Users who print specs for their 
+          bar book will thank you.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-ux">UX</span>
+          <h4>Touch-Optimized Mobile Navigation</h4>
+          <p>Bottom tab bar on mobile replaces the sidebar slide-out. Swipe gestures to go back, 
+          long-press ingredients for context menu. Make the phone experience feel native.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY 7: STRETCH / LONG-TERM -->
+    <section class="fade-in">
+      <h2>08 &nbsp;Stretch Goals — The Long Game</h2>
+
+      <div class="upgrade-grid">
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">VISION</span>
+          <h4>AI-Assisted Spec Balancing</h4>
+          <p>Describe what you want: "Something tart with mezcal and a hint of smoke, 20% ABV." The app 
+          suggests a balanced spec with calculated dilution. Leverages the existing cocktail data as training.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">VISION</span>
+          <h4>Guest Profiles &amp; Preferences</h4>
+          <p>Save guest preferences (likes: rum, dislikes: Campari, allergic: eggs). When a guest is selected, 
+          the app highlights cocktails they'd enjoy and warns about ingredients to avoid. For hosts.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">VISION</span>
+          <h4>Multi-Device Sync via WebRTC</h4>
+          <p>Peer-to-peer sync between devices without a server. Open the app on your phone, scan a QR code 
+          from your laptop, your inventory syncs. WebRTC data channels + local encryption. No backend needed.</p>
+        </div>
+        <div class="upgrade-item fade-in">
+          <span class="tag tag-feature">VISION</span>
+          <h4>Ingredient Marketplace / Curated Shopping</h4>
+          <p>For complex recipes, show a "build this spec" shopping list with links to recommended bottles, 
+          syrups, and bar tools. Could be affiliate-linked or just informational.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRIORITY MAP -->
+    <section class="fade-in">
+      <h2>09 &nbsp;Priority Map — What to Build First</h2>
+      <p style="color:var(--text-muted);margin-bottom:1rem;">
+        Not all upgrades are equal. This map weights <strong>effort vs. impact</strong> to help you decide 
+        where to start. The high-impact, low-effort quadrant is the sweet spot.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:1.5rem;">
+        <div style="background:rgba(0,245,212,0.06);border:1px solid var(--cyan);border-radius:10px;padding:1rem;">
+          <h4 style="color:var(--cyan);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">🔥 Quick Wins (Low Effort, High Impact)</h4>
+          <ul style="list-style:none;padding:0;">
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(0,245,212,0.08);">✦ PWA manifest + service worker</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(0,245,212,0.08);">✦ Keyboard shortcuts (⌘N, ⌘S, etc.)</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(0,245,212,0.08);">✦ Spring-easing button presses</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);">✦ Print-ready recipe styles</li>
+          </ul>
+        </div>
+        <div style="background:rgba(255,0,110,0.06);border:1px solid var(--magenta);border-radius:10px;padding:1rem;">
+          <h4 style="color:var(--magenta);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">🏗️ Foundation Builds (Medium Effort, High Impact)</h4>
+          <ul style="list-style:none;padding:0;">
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(255,0,110,0.08);">✦ React Router + code splitting</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(255,0,110,0.08);">✦ Zustand store (eliminate prop drilling)</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(255,0,110,0.08);">✦ View extraction to src/views/</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);">✦ Flavor radar chart (Chart.js)</li>
+          </ul>
+        </div>
+        <div style="background:rgba(131,56,236,0.06);border:1px solid var(--purple);border-radius:10px;padding:1rem;">
+          <h4 style="color:var(--purple);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">🎯 Differentiators (High Effort, High Impact)</h2>
+          <ul style="list-style:none;padding:0;">
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(131,56,236,0.08);">✦ Pour animation + voice-through method</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(131,56,236,0.08);">✦ AI spec balancer</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(131,56,236,0.08);">✦ Cocktail randomizer + party host view</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);">✦ Theme system (Midnight / Paper / Seasonal)</li>
+          </ul>
+        </div>
+        <div style="background:rgba(255,190,11,0.06);border:1px solid var(--yellow);border-radius:10px;padding:1rem;">
+          <h4 style="color:var(--yellow);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">☁️ Stretch (High Effort, Variable Impact)</h2>
+          <ul style="list-style:none;padding:0;">
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(255,190,11,0.08);">✦ Multi-device WebRTC sync</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(255,190,11,0.08);">✦ Barcode scanner integration</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);border-bottom:1px solid rgba(255,190,11,0.08);">✦ Guest profiles with preferences</li>
+            <li style="padding:0.3rem 0;font-size:0.85rem;color:var(--text-muted);">✦ Ingredient marketplace</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- VERDICT -->
+    <div class="verdict fade-in">
+      <h3>🍸 The Verdict</h3>
+      <p>
+        Cocktail Colleague has <strong>excellent foundations</strong> — a rich catalog, solid local-first architecture, 
+        and a premium aesthetic. The upgrades aren't about fixing what's broken. They're about 
+        <strong>unlocking the sensory, architectural, and experiential potential</strong> of an app that 
+        already does the hard part right.
+        <br><br>
+        Start with the <strong style="color:var(--cyan);">Quick Wins</strong> (PWA, keyboard shortcuts, spring 
+        buttons) — they're trivial to implement and immediately visible. Then tackle the 
+        <strong style="color:var(--magenta);">Foundation Builds</strong> (Router, store, file splitting) — they 
+        make everything else faster to build. Then pick one <strong style="color:var(--purple);">Differentiator</strong> 
+        that matches your vision.
+        <br><br>
+        The gap between "good cocktail app" and "cocktail app you show people" is <strong>smaller than you think</strong>.
+      </p>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Cocktail Colleague — Upgrade Vision Board · Generated May 2026</p>
+  </footer>
+
+  <script>
+    // 1. PROGRESS BAR
+    window.addEventListener('scroll', () => {
+      const d = document.documentElement;
+      document.getElementById('progress-bar').style.width =
+        ((d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100) + '%';
+    });
+
+    // 2. FADE-IN ON SCROLL
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // 3. TYPING EFFECT
+    const sub = document.querySelector('.subtitle');
+    if (sub) {
+      const text = sub.textContent.replace('|', '').trim();
+      sub.textContent = '';
+      const cursor = document.createElement('span');
+      cursor.style.cssText = 'border-right:2px solid var(--cyan);animation:blink 0.8s step-end infinite;';
+      let i = 0;
+      function type() {
+        if (i < text.length) {
+          sub.textContent = text.substring(0, i + 1);
+          sub.appendChild(cursor);
+          i++;
+          setTimeout(type, 15 + Math.random() * 20);
+        }
+      }
+      setTimeout(type, 500);
+    }
+  </script>
+</body>
+</html>

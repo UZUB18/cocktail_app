@@ -1,0 +1,112 @@
+/* Print-ready recipe cards */
+@media print {
+  @page {
+    margin: 1.5cm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sidebar,
+  .topbar,
+  .sidebar-toggle,
+  .top-actions,
+  .edge-hover-zone,
+  .back-button,
+  .utility-row,
+  .action-rail,
+  .scale-card,
+  .rating-card,
+  .pro-tip blockquote,
+  .add-row,
+  .copy-row,
+  .batch-selector,
+  .batch-actions,
+  .party-add-row,
+  .card-actions,
+  .search-box,
+  .search-workbench,
+  .chip-list,
+  .search-filter-grid,
+  .page-actions button:not(.back-button),
+  #progress-bar,
+  body::before {
+    display: none !important;
+  }
+
+  .page,
+  .content,
+  .app-shell,
+  .workspace {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .recipe-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .panel {
+    border: 1px solid #ddd !important;
+    background: white !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .recipe-card {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+    -webkit-text-fill-color: black !important;
+  }
+
+  .ingredient-row,
+  .meta-item,
+  .stat,
+  .description,
+  p, li, span, strong, small, em {
+    color: black !important;
+  }
+
+  .drink-visual img {
+    max-height: 200px !important;
+    object-fit: contain !important;
+  }
+
+  .tag-row span,
+  .missing-line,
+  .match-reason-badge {
+    border-color: #ccc !important;
+    background: #f5f5f5 !important;
+    color: #333 !important;
+  }
+
+  .home-section-title h2,
+  .section-label {
+    color: #333 !important;
+  }
+
+  .nav-item b,
+  .badge-count {
+    background: #ddd !important;
+    color: #333 !important;
+    box-shadow: none !important;
+  }
+}
